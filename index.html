@@ -327,6 +327,18 @@ function build(ans,cands,filler,n){ const want=(n||ri(3,5))-1; const set=new Set
 function g_transY(A){const a=pk(A||DA),q=nz(-4,4),ans=fq(a,0,q),base=fq(a,0,0); const b=build(ans,[fq(a,0,-q),fq(a,q,0),fq(a,0,2*q),fq(-a,0,q)],()=>fq(a,0,nz(-5,5))); return{q:`${base} 의 그래프를 y축의 방향으로 ${q}만큼 평행이동한 식은?`,...b,explain:"y축 방향 이동 → 식 끝에 +q."};}
 function g_transX(A){const a=pk(A||DA),p=nz(-4,4),ans=fq(a,p,0),base=fq(a,0,0); const b=build(ans,[fq(a,-p,0),fq(a,0,p),fq(-a,p,0),fq(a,0,-p)],()=>fq(a,nz(-5,5),0)); return{q:`${base} 의 그래프를 x축의 방향으로 ${p}만큼 평행이동한 식은?`,...b,explain:"x축 방향 이동 → 괄호 안 부호 반대 (x-p)."};}
 function g_transBoth(A){const a=pk(A||DA),p=nz(-4,4),q=nz(-4,4),ans=fq(a,p,q),base=fq(a,0,0); const b=build(ans,[fq(a,-p,q),fq(a,p,-q),fq(a,-p,-q),fq(a,q,p),fq(-a,p,q)],()=>fq(a,nz(-5,5),nz(-5,5))); return{q:`${base} 의 그래프를 x축의 방향으로 ${p}만큼, y축의 방향으로 ${q}만큼 평행이동한 식은?`,...b,explain:"x는 (x-p), y는 +q."};}
+function g_transXrev(A){const a=pk(A||DA),p=nz(-4,4),base=fq(a,0,0),eq=fq(a,p,0),ans=`x축의 방향으로 ${p}만큼`;
+  const b=build(ans,[`x축의 방향으로 ${-p}만큼`,`y축의 방향으로 ${p}만큼`,`y축의 방향으로 ${-p}만큼`],()=>`x축의 방향으로 ${nz(-4,4)}만큼`,ri(3,4));
+  return{q:`${eq} 의 그래프는 ${base} 의 그래프를 어떻게 평행이동한 것인가?`,...b,explain:"(x-p)² 꼴 → x축의 방향으로 p만큼 이동."};}
+function g_transYrev(A){const a=pk(A||DA),q=nz(-4,4),base=fq(a,0,0),eq=fq(a,0,q),ans=`y축의 방향으로 ${q}만큼`;
+  const b=build(ans,[`y축의 방향으로 ${-q}만큼`,`x축의 방향으로 ${q}만큼`,`x축의 방향으로 ${-q}만큼`],()=>`y축의 방향으로 ${nz(-4,4)}만큼`,ri(3,4));
+  return{q:`${eq} 의 그래프는 ${base} 의 그래프를 어떻게 평행이동한 것인가?`,...b,explain:"+q → y축의 방향으로 q만큼 이동."};}
+function g_transXvertex(A){const a=pk(A||DA),p=nz(-4,4),ans=`(${p}, 0)`;
+  const b=build(ans,[`(0, ${p})`,`(${-p}, 0)`,`(${p}, ${p})`,`(0, ${-p})`],()=>`(${nz(-4,4)}, 0)`,ri(3,5));
+  return{q:`${fq(a,0,0)} 의 그래프를 x축의 방향으로 ${p}만큼 평행이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:"x축 방향 p만큼 이동 → 꼭짓점은 (p, 0)."};}
+function g_transYvertex(A){const a=pk(A||DA),q=nz(-4,4),ans=`(0, ${q})`;
+  const b=build(ans,[`(${q}, 0)`,`(0, ${-q})`,`(${q}, ${q})`,`(${-q}, 0)`],()=>`(0, ${nz(-4,4)})`,ri(3,5));
+  return{q:`${fq(a,0,0)} 의 그래프를 y축의 방향으로 ${q}만큼 평행이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:"y축 방향 q만큼 이동 → 꼭짓점은 (0, q)."};}
 function g_convex(A){const a=pk([1,-1,2,-2,3,-3]),base=fq(a,0,0),ans=a>0?"아래로 볼록":"위로 볼록"; return{q:`${base} 의 그래프의 모양으로 옳은 것은?`,ans,options:sh([ans,a>0?"위로 볼록":"아래로 볼록","직선이 된다"]),explain:"a>0 아래로, a<0 위로 볼록."};}
 function g_width(A){const bigger=Math.random()<.5,ans=bigger?"좁아진다":"넓어진다"; return{q:`이차함수 y=ax² 에서 |a|의 값이 ${bigger?'커질수록':'작아질수록'} 그래프의 폭은?`,ans,options:sh([ans,bigger?"넓어진다":"좁아진다","변하지 않는다","직선이 된다"]),explain:"|a|가 클수록 폭이 좁고, |a|가 작을수록 폭이 넓어져요."};}
 function g_widthcmp(A){const vals=[1,-1,2,-2,3,-3];let a1=pk(vals),a2=pk(vals);while(Math.abs(a2)===Math.abs(a1))a2=pk(vals);
@@ -374,8 +386,9 @@ const TIER_GEN={
   '최상':[A=>g_complete(A),A=>g_yint(A),A=>g_xint(A)],
 };
 // 일반 모드 '하' 풀 (대부분 계수 1, 그래프 해석 일부 포함)
-const NORMAL_EARLY=[A=>g_transY(A),A=>g_transX(A),A=>g_vertex('ax2',A),A=>g_vertex('ax2q',A),A=>g_vertex('axp2',A)];
-const NORMAL_EASY=[A=>g_transY(A),A=>g_transX(A),A=>g_vertex('ax2',A),A=>g_vertex('ax2q',A),A=>g_vertex('axp2',A),A=>g_convex(A),A=>g_width(A),A=>g_widthcmp(A)];
+// 일반 모드: 두 핵심 평행이동만 반복 연습 — x축 방향 p → y=a(x-p)², y축 방향 q → y=ax²+q (식·꼭짓점·설명 형태)
+const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
+const NORMAL_EASY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
 function pickTierHard(wave){ if(wave<=2)return '중하'; if(wave<=4)return '중'; if(wave<=6)return '중상'; if(wave<=8)return '상'; return '최상'; }
 function makeProblem(mode,wave,forceHard){
   if(forceHard){ const tier=mode==="hard"?'최상':'상'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p; }
@@ -449,8 +462,29 @@ const MTYPE={
   b_vampire:{name:'흡혈 군주',emoji:'🧛',hp:15,spd:.72,reward:15,color:'#d65a6e',boss:true,noSlow:true},
   b_witch:{name:'심연의 대마녀',emoji:'🧙',hp:16,spd:.66,reward:15,color:'#b06bff',boss:true},
   b_wraith:{name:'망령왕',emoji:'☠️',hp:14,spd:.8,reward:14,color:'#aef0c8',boss:true,noSlow:true},
+  b_minotaur:{name:'미궁의 미노타우로스',emoji:'🐂',hp:21,spd:.5,reward:16,color:'#c0784a',boss:true},
+  b_cyclops:{name:'외눈 거인',emoji:'👁️',hp:23,spd:.42,reward:17,color:'#e08a5a',boss:true},
+  b_serpent:{name:'바다뱀',emoji:'🐍',hp:16,spd:.78,reward:15,color:'#5fd07a',boss:true},
+  b_wolf:{name:'달의 늑대왕',emoji:'🐺',hp:14,spd:.98,reward:15,color:'#9fb0c8',boss:true,noSlow:true},
+  b_scorpion:{name:'사막 전갈',emoji:'🦂',hp:18,spd:.6,reward:15,color:'#e0b04a',boss:true},
+  b_spider:{name:'독거미 여왕',emoji:'🕷️',hp:15,spd:.74,reward:15,color:'#8a6bd0',boss:true},
+  b_shark:{name:'육지 상어',emoji:'🦈',hp:17,spd:.82,reward:16,color:'#6fb0e0',boss:true,noSlow:true},
+  b_lion:{name:'성난 사자왕',emoji:'🦁',hp:18,spd:.7,reward:16,color:'#ffaa3a',boss:true},
+  b_bull:{name:'분노의 들소',emoji:'🐃',hp:22,spd:.55,reward:17,color:'#a07a5a',boss:true},
+  b_rhino:{name:'강철 코뿔소',emoji:'🦏',hp:25,spd:.46,reward:18,color:'#9aa0a8',boss:true},
+  b_elephant:{name:'거대 매머드',emoji:'🐘',hp:27,spd:.38,reward:19,color:'#a8b0bc',boss:true},
+  b_gorilla:{name:'밀림의 왕',emoji:'🦍',hp:23,spd:.52,reward:17,color:'#7a8088',boss:true},
+  b_octopus:{name:'독성 문어',emoji:'🐙',hp:19,spd:.56,reward:16,color:'#d05a9a',boss:true},
+  b_crab:{name:'강철 집게 게',emoji:'🦀',hp:24,spd:.44,reward:17,color:'#ff7a5a',boss:true},
+  b_snake:{name:'코브라 군주',emoji:'🐉',hp:18,spd:.74,reward:17,color:'#5ad08a',boss:true,noSlow:true},
+  b_skull:{name:'저주받은 해골',emoji:'💀',hp:15,spd:.88,reward:16,color:'#e8ecff',boss:true},
+  b_zombie:{name:'역병 좀비왕',emoji:'🧟',hp:20,spd:.5,reward:16,color:'#8fb06a',boss:true},
+  b_genie:{name:'램프의 마신',emoji:'🧞',hp:17,spd:.68,reward:16,color:'#6bd0e0',boss:true},
+  b_alien:{name:'외계 침략자',emoji:'👾',hp:18,spd:.76,reward:17,color:'#8a7bff',boss:true,noSlow:true},
+  b_robot:{name:'파괴 로봇',emoji:'🦾',hp:26,spd:.45,reward:18,color:'#aab2c0',boss:true},
+  b_devil:{name:'지옥의 대공',emoji:'👿',hp:19,spd:.62,reward:18,color:'#ff4d5d',boss:true},
 };
-const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken','b_yeti','b_golem','b_vampire','b_witch','b_titan','b_wraith'];
+const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken','b_yeti','b_golem','b_vampire','b_witch','b_titan','b_wraith','b_minotaur','b_cyclops','b_serpent','b_wolf','b_scorpion','b_spider','b_shark','b_lion','b_bull','b_rhino','b_elephant','b_gorilla','b_octopus','b_crab','b_snake','b_skull','b_zombie','b_genie','b_alien','b_robot','b_devil'];
 
 /* ============================================================
    맵 / 상태
