@@ -339,6 +339,24 @@ function g_transXvertex(A){const a=pk(A||DA),p=nz(-4,4),ans=`(${p}, 0)`;
 function g_transYvertex(A){const a=pk(A||DA),q=nz(-4,4),ans=`(0, ${q})`;
   const b=build(ans,[`(${q}, 0)`,`(0, ${-q})`,`(${q}, ${q})`,`(${-q}, 0)`],()=>`(0, ${nz(-4,4)})`,ri(3,5));
   return{q:`${fq(a,0,0)} 의 그래프를 y축의 방향으로 ${q}만큼 평행이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:"y축 방향 q만큼 이동 → 꼭짓점은 (0, q)."};}
+/* --- 교과서풍 분수 계수·이동량 평행이동 (예: y=-(1/2)x², 이동량 3/2) --- */
+const gcd2=(a,b)=>b?gcd2(b,a%b):a;
+const redF=f=>{const g=gcd2(Math.abs(f.n),Math.abs(f.d))||1;let n=f.n/g,d=f.d/g;if(d<0){n=-n;d=-d;}return{n,d};};
+const F=(n,d=1)=>redF({n,d});
+const negF=f=>({n:-f.n,d:f.d});
+const fS=f=>f.d===1?String(f.n):`${f.n}/${f.d}`;
+const aS=f=>f.d===1?(f.n===1?"":(f.n===-1?"-":String(f.n))):(f.n<0?"-":"")+`(${Math.abs(f.n)}/${f.d})`;
+const eqYf=(c,q)=>{let s="y = "+aS(c)+"x²"; if(q.n>0)s+=" + "+fS(q); else if(q.n<0)s+=" - "+fS(negF(q)); return s;};
+const eqXf=(c,p)=>{const inner=p.n>0?`x - ${fS(p)}`:`x + ${fS(negF(p))}`; return `y = ${aS(c)}(${inner})²`;};
+const CPOOL=[F(1,2),F(-1,2),F(1,3),F(-1,3),F(1,4),F(-1,4),F(1,6),F(-1,6),F(2,5),F(-2,5),F(3,2),F(-3,2),F(4,3),F(-4,3),F(2,3),F(-2,3),F(2),F(-2),F(3),F(-3),F(4),F(-4),F(5),F(7)];
+const SPOOL=[F(1),F(-1),F(2),F(-2),F(3),F(-3),F(4),F(-4),F(1,2),F(-1,2),F(3,2),F(-3,2),F(1,4),F(-1,4),F(2,3),F(-2,3),F(5,2),F(-5,2)];
+const rndSf=()=>{const f=pk(SPOOL);return F(f.n+(Math.random()<.3&&f.d===1?nz(-2,2):0),f.d);};
+function g_transYf(){ const c=pk(CPOOL),q=pk(SPOOL),base="y = "+aS(c)+"x²",ans=eqYf(c,q);
+  const b=build(ans,[eqYf(c,negF(q)),eqXf(c,q),eqYf(negF(c),q),eqYf(c,redF({n:2*q.n,d:q.d}))],()=>eqYf(c,rndSf()),ri(3,5));
+  return{q:`${base} 의 그래프를 y축의 방향으로 ${fS(q)}만큼 평행이동한 그래프를 나타내는 이차함수의 식은?`,...b,explain:"y축 방향으로 q만큼 → 식 끝에 +q. (y = ax² + q)"};}
+function g_transXf(){ const c=pk(CPOOL),p=pk(SPOOL),base="y = "+aS(c)+"x²",ans=eqXf(c,p);
+  const b=build(ans,[eqXf(c,negF(p)),eqYf(c,p),eqXf(negF(c),p),eqXf(c,redF({n:2*p.n,d:p.d}))],()=>eqXf(c,rndSf()),ri(3,5));
+  return{q:`${base} 의 그래프를 x축의 방향으로 ${fS(p)}만큼 평행이동한 그래프를 나타내는 이차함수의 식은?`,...b,explain:"x축 방향으로 p만큼 → 괄호 안 부호 반대. (y = a(x-p)²)"};}
 function g_convex(A){const a=pk([1,-1,2,-2,3,-3]),base=fq(a,0,0),ans=a>0?"아래로 볼록":"위로 볼록"; return{q:`${base} 의 그래프의 모양으로 옳은 것은?`,ans,options:sh([ans,a>0?"위로 볼록":"아래로 볼록","직선이 된다"]),explain:"a>0 아래로, a<0 위로 볼록."};}
 function g_width(A){const bigger=Math.random()<.5,ans=bigger?"좁아진다":"넓어진다"; return{q:`이차함수 y=ax² 에서 |a|의 값이 ${bigger?'커질수록':'작아질수록'} 그래프의 폭은?`,ans,options:sh([ans,bigger?"넓어진다":"좁아진다","변하지 않는다","직선이 된다"]),explain:"|a|가 클수록 폭이 좁고, |a|가 작을수록 폭이 넓어져요."};}
 function g_widthcmp(A){const vals=[1,-1,2,-2,3,-3];let a1=pk(vals),a2=pk(vals);while(Math.abs(a2)===Math.abs(a1))a2=pk(vals);
@@ -387,8 +405,9 @@ const TIER_GEN={
 };
 // 일반 모드 '하' 풀 (대부분 계수 1, 그래프 해석 일부 포함)
 // 일반 모드: 두 핵심 평행이동만 반복 연습 — x축 방향 p → y=a(x-p)², y축 방향 q → y=ax²+q (식·꼭짓점·설명 형태)
+// 교과서풍 분수 계수·이동량 문제(g_transXf/Yf)를 약 절반 비중으로 출제
 const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
-const NORMAL_EASY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
+const NORMAL_EASY=[()=>g_transXf(),()=>g_transXf(),()=>g_transYf(),()=>g_transYf(),A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
 function pickTierHard(wave){ if(wave<=2)return '중하'; if(wave<=4)return '중'; if(wave<=6)return '중상'; if(wave<=8)return '상'; return '최상'; }
 function makeProblem(mode,wave,forceHard){
   if(forceHard){ const tier=mode==="hard"?'최상':'상'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p; }
