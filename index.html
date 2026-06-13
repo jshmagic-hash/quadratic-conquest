@@ -404,13 +404,12 @@ const TIER_GEN={
   '최상':[A=>g_complete(A),A=>g_yint(A),A=>g_xint(A)],
 };
 // 일반 모드 '하' 풀 (대부분 계수 1, 그래프 해석 일부 포함)
-// 일반 모드: 두 핵심 평행이동만 반복 연습 — x축 방향 p → y=a(x-p)², y축 방향 q → y=ax²+q (식·꼭짓점·설명 형태)
-// 교과서풍 분수 계수·이동량 문제(g_transXf/Yf)를 약 절반 비중으로 출제
+// 일반 모드: 두 핵심 평행이동만 반복 연습 — x축 방향 p → y=a(x-p)², y축 방향 q → y=ax²+q (식·꼭짓점·설명 형태). 분수 없이 정수 계수·이동량만.
 const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
-const NORMAL_EASY=[()=>g_transXf(),()=>g_transXf(),()=>g_transYf(),()=>g_transYf(),A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
+const NORMAL_EASY=[A=>g_transX(A),A=>g_transX(A),A=>g_transY(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
 function pickTierHard(wave){ if(wave<=2)return '중하'; if(wave<=4)return '중'; if(wave<=6)return '중상'; if(wave<=8)return '상'; return '최상'; }
 function makeProblem(mode,wave,forceHard){
-  if(forceHard){ const tier=mode==="hard"?'최상':'상'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p; }
+  if(forceHard){ const tier=mode==="hard"?'최상':'중하'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p; }
   if(mode==="normal"){
     if(wave<=4){ const p=pk(NORMAL_EARLY)([1]); p.tier='하'; return p; }  // 초반: 계수 1
     const p=pk(NORMAL_EASY)([1,1,1,-1,2]); p.tier='하'; return p;          // 이후에도 항상 '하'
@@ -607,7 +606,8 @@ function renderTowerInfo(){ const box=$("tower-info"); const s=state.selSlot;
     box.innerHTML=`<div class="ti-top"><span class="ti-em">${T.emoji}</span><div><div class="ti-name">${T.name} ${starStr(inv.star,col)}</div><div class="ti-role" style="color:${ROLE_COLOR[T.role]}">${T.role} · ${STAR_NAME[inv.star]} · 대기 중</div></div></div>
       <div class="ti-stat">${statLine(inv.type,inv.star)}</div>
       <div class="ti-stat" style="color:#9fb3d9;line-height:1.5">${T.desc}</div>
-      <div class="ti-btns"><button class="btn btn-ghost" id="ti-close">설명 닫기</button></div>`;
+      <div class="ti-btns"><button class="btn btn-red" id="ti-sell">💰 판매 (+${sellPrice(inv.star)}G)</button><button class="btn btn-ghost" id="ti-close">닫기</button></div>`;
+    $("ti-sell").onclick=()=>{ state.gold+=sellPrice(inv.star); state.inventory=state.inventory.filter(t=>t.id!==inv.id); state.selected.delete(inv.id); state.infoInv=null; toast(`💰 ${STAR_NAME[inv.star]} ${T.name} 판매 (+${sellPrice(inv.star)}G)`); renderInventory(); renderTowerInfo(); updateHUD(); updateSynBtn(); SFX.sell(); };
     $("ti-close").onclick=()=>{ state.infoInv=null; renderTowerInfo(); }; return; }
   box.classList.add("hidden");
 }
