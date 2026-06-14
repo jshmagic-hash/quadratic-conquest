@@ -211,8 +211,10 @@
           <button id="btn-gacha" class="btn btn-gold">🎁 타워 뽑기 <span class="small">(Q)</span><br><span class="small">-55 G</span></button>
           <button id="btn-syn" class="btn btn-blue" disabled>⚒️ 타워 합성<br><span class="small">같은 등급 2개</span></button>
         </div>
-        <button id="btn-gacha10" class="btn btn-gold" style="width:100%;background:linear-gradient(180deg,#ffd27a,#ff9d3d);box-shadow:0 5px 0 #c9701f;">🎁×10 한방 뽑기 <span class="small">(W)</span> · -500 G<br><span class="small">⚠️ 고난도 문제! 정답 시 타워 10개</span></button>
-        <div class="inv-head"><h4>🏰 타워 대기실</h4><span class="tip" id="inv-tip">1개 선택 → 빈자리 탭</span></div>
+        <button id="btn-gacha10" class="btn btn-gold" style="width:100%;background:linear-gradient(180deg,#ffd27a,#ff9d3d);box-shadow:0 5px 0 #c9701f;">🎁×10 한방 뽑기 <span class="small">(W)</span><br><span class="small">⚠️ 고난도! 정답 시 타워 10개</span></button>
+        <button id="btn-nuke" class="btn btn-red" style="width:100%;margin-top:6px;">☄️ 융합 포격 <span class="small">(전체 데미지)</span></button>
+        <div class="inv-head"><h4>🏰 타워 대기실</h4><button id="btn-sellsel" class="btn btn-ghost" style="padding:3px 10px;font-size:12px;">선택 일괄 판매</button></div>
+        <span class="tip" id="inv-tip" style="display:block;margin:-2px 0 4px;">1개 선택 → 빈자리 탭</span>
         <div class="inventory" id="inventory"></div>
         <div class="tower-info hidden" id="tower-info"></div>
         <div class="lb"><h4>🏆 명예의 전당 <span class="lb-mode" id="lb-mode">(일반)</span></h4><div id="lb-list"></div></div>
@@ -395,31 +397,62 @@ function g_xint(A){const a=pk([1,-1,2,-2]);let r1=ri(-4,4),r2=ri(-4,4);while(r2=
   const phrase=Math.random()<.5?"x축과 만나는 점의 x좌표를 모두 구하면?":"x절편을 모두 구하면?";
   return{q:`${gen} 의 그래프에서 ${phrase}`,...bb,explain:"y=0을 대입해 인수분해: a(x-r₁)(x-r₂)=0 → x절편은 r₁, r₂."};}
 function g_complete(A){const a=pk(A||DA2),p=nz(-3,3),q=ri(-4,4),bb=-2*a*p,c=a*p*p+q,gen=fgen(a,bb,c),ans=pt(p,q); const b=build(ans,[pt(-p,q),pt(p,-q),pt(-p,-q),pt(bb,c),pt(p,q+1)],()=>pt(p+nz(-2,2),q+nz(-2,2))); return{q:`${gen} 를 완전제곱식으로 고쳤을 때, 그래프의 꼭짓점의 좌표는?`,...b,explain:"y=a(x-p)²+q 꼴로 변형 → (p, q)."};}
+/* ===== 대칭이동 (하드코어 주제): x축 y=-f(x) / y축 y=f(-x) ===== */
+function g_symXeq(A,full){const a=pk(A||DA),p=full?nz(-3,3):0,q=nz(-4,4),base=fq(a,p,q),ans=fq(-a,p,-q);
+  const b=build(ans,[fq(a,p,-q),fq(-a,p,q),fq(a,p,q),fq(-a,-p,-q)],()=>fq(-a,p,-q+nz(-2,2)),ri(3,5));
+  return{q:`${base} 의 그래프를 x축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"x축 대칭 y=-f(x): a와 상수항의 부호가 모두 반대. 꼭짓점 (p, q)→(p, -q)."};}
+function g_symYeq(A,full){const a=pk(A||DA),p=nz(-3,3),q=full?ri(-4,4):0,base=fq(a,p,q),ans=fq(a,-p,q);
+  const b=build(ans,[fq(-a,p,q),fq(a,p,-q),fq(a,p,q),fq(-a,-p,q)],()=>fq(a,-p,q+nz(-2,2)),ri(3,5));
+  return{q:`${base} 의 그래프를 y축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"y축 대칭 y=f(-x): (x-p)가 (x+p)로, p의 부호가 반대. 꼭짓점 (p, q)→(-p, q)."};}
+function g_symVertex(A){const a=pk(A||DA),p=nz(-3,3),q=nz(-3,3),xaxis=Math.random()<.5,base=fq(a,p,q),ans=xaxis?pt(p,-q):pt(-p,q);
+  const b=build(ans,[pt(p,q),pt(-p,-q),xaxis?pt(-p,q):pt(p,-q),pt(q,p)],()=>pt(nz(-3,3),nz(-3,3)),ri(3,5));
+  return{q:`${base} 의 그래프를 ${xaxis?'x축':'y축'}에 대하여 대칭이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:xaxis?"x축 대칭: (p, q)→(p, -q).":"y축 대칭: (p, q)→(-p, q)."};}
+function g_symAxis(A){const a=pk(A||DA),p=nz(-3,4),q=ri(-3,3),base=fq(a,p,q),ans=`x = ${-p}`;
+  const b=build(ans,[`x = ${p}`,`y = ${-p}`,`x = ${-q}`,`x = 0`],()=>`x = ${nz(-4,4)}`,ri(3,5));
+  return{q:`${base} 의 그래프를 y축에 대하여 대칭이동한 그래프의 축의 방정식은?`,...b,explain:"y축 대칭 → 축 x=p 가 x=-p 로 바뀜."};}
+function g_symGen(A,xaxis){const a=pk(A||DA2),b1=nz(-4,4),c=ri(-4,4),base=fgen(a,b1,c),ans=xaxis?fgen(-a,-b1,-c):fgen(a,-b1,c);
+  const cands=[fgen(-a,b1,c),fgen(a,b1,-c),fgen(-a,-b1,c),fgen(a,-b1,-c),fgen(-a,b1,-c)].filter(x=>x!==ans);
+  const bb=build(ans,cands,()=>fgen(a,nz(-4,4),ri(-4,4)),ri(3,5));
+  return{q:`${base} 의 그래프를 ${xaxis?'x축':'y축'}에 대하여 대칭이동한 그래프의 식은?`,...bb,explain:xaxis?"x축 대칭 y=-f(x): 모든 항의 부호가 반대.":"y축 대칭 y=f(-x): 일차항(x의 홀수차) 부호만 반대."};}
+function g_symBoth(A){const a=pk(A||DA),p=nz(-3,3),q=nz(-3,3),base=fq(a,p,q),ans=fq(-a,-p,-q);
+  const b=build(ans,[fq(-a,p,-q),fq(-a,-p,q),fq(a,-p,-q),fq(a,p,q)],()=>fq(-a,nz(-3,3),nz(-3,3)),ri(3,5));
+  return{q:`${base} 의 그래프를 x축에 대하여 대칭이동한 뒤, 다시 y축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"x축·y축 연속 대칭 = 원점 대칭: a, p, q 모두 부호 반대."};}
+function g_symWhich(A){const a=pk(A||DA),p=nz(-2,3),q=nz(-3,3),base=fq(a,p,q),xaxis=Math.random()<.5,res=xaxis?fq(-a,p,-q):fq(a,-p,q),ans=xaxis?'x축':'y축';
+  const b=build(ans,['x축','y축','원점'],null,3);
+  return{q:`${base} 의 그래프를 어떤 직선에 대하여 대칭이동했더니 ${res} 가 되었다. 무엇에 대한 대칭인가?`,...b,explain:"a·상수항이 바뀌면 x축, (x-p)의 부호만 바뀌면 y축 대칭."};}
+
+// 하드코어: 전부 대칭이동, 등급이 오를수록 어려운 형태
 const TIER_GEN={
-  '하':[A=>g_transY(A),A=>g_transX(A),A=>g_convex(A),A=>g_vertex('ax2',A),A=>g_vertex('ax2q',A),A=>g_width(A),A=>g_widthcmp(A)],
-  '중하':[A=>g_transX(A),A=>g_vertex('ax2q',A),A=>g_vertex('axp2',A),A=>g_axis(A),A=>g_width(A),A=>g_xsym(A),A=>g_widthcmp(A)],
-  '중':[A=>g_transBoth(A),A=>g_vertex('std',A),A=>g_axis(A),A=>g_xsym(A),A=>g_vertexToEq(A),A=>g_onpoint(A),A=>g_incdec(A)],
-  '중상':[A=>g_vertex('std',A),A=>g_vertexToEq(A),A=>g_axis(A),A=>g_yint(A),A=>g_incdec(A),A=>g_onpoint(A)],
-  '상':[A=>g_yint(A),A=>g_xint(A),A=>g_complete(A),A=>g_vertex('std',A),A=>g_incdec(A)],
-  '최상':[A=>g_complete(A),A=>g_yint(A),A=>g_xint(A)],
+  '중하':[A=>g_symXeq(A,false),A=>g_symYeq(A,false),A=>g_symVertex(A)],
+  '중':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symVertex(A),A=>g_symAxis(A)],
+  '중상':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symAxis(A),A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symWhich(A)],
+  '상':[A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symBoth(A),A=>g_symWhich(A),A=>g_symAxis(A)],
+  '최상':[A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symBoth(A),A=>g_symWhich(A)],
 };
-// 일반 모드 '하' 풀 (대부분 계수 1, 그래프 해석 일부 포함)
-// 일반 모드: 두 핵심 평행이동만 반복 연습 — x축 방향 p → y=a(x-p)², y축 방향 q → y=ax²+q (식·꼭짓점·설명 형태). 분수 없이 정수 계수·이동량만.
+// 일반 모드: 평행이동 반복 연습(정수만). '하' 기본, '중하' 약간 심화.
 const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
 const NORMAL_EASY=[A=>g_transX(A),A=>g_transX(A),A=>g_transY(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
+const NORMAL_JUNGHA=[A=>g_transX(A),A=>g_transY(A),A=>g_transBoth(A),A=>g_transXrev(A),A=>g_transYrev(A),A=>g_vertex('axp2',A),A=>g_vertex('ax2q',A)];
 function pickTierHard(wave){ if(wave<=2)return '중하'; if(wave<=4)return '중'; if(wave<=6)return '중상'; if(wave<=8)return '상'; return '최상'; }
 function makeProblem(mode,wave,forceHard){
-  if(forceHard){ const tier=mode==="hard"?'최상':'중하'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p; }
+  if(forceHard){ // 10연차
+    if(mode==="hard"){ const p=pk(TIER_GEN['최상'])([1,-1,2,-2,3]); p.tier='최상'; return p; }
+    const p=pk(NORMAL_JUNGHA)([1,-1,2,-2]); p.tier='중하'; return p;
+  }
   if(mode==="normal"){
-    if(wave<=4){ const p=pk(NORMAL_EARLY)([1]); p.tier='하'; return p; }  // 초반: 계수 1
-    const p=pk(NORMAL_EASY)([1,1,1,-1,2]); p.tier='하'; return p;          // 이후에도 항상 '하'
+    if(wave<=4){ const p=pk(NORMAL_EARLY)([1]); p.tier='하'; return p; }
+    const p=pk(NORMAL_EASY)([1,1,1,-1,2]); p.tier='하'; return p;
   }
   const tier=pickTierHard(wave); const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p;
+}
+// 합성·강화 등급 게이트: 등급이 높을수록 어려운 문제 (일반=평행이동, 하드=대칭이동)
+function gradedProblem(mode,star){
+  if(mode==="normal"){ const pool=star<=2?NORMAL_EASY:NORMAL_JUNGHA; const p=pk(pool)([1,1,-1,2,-2]); p.tier=star<=2?'하':'중하'; return p; }
+  const tier={1:'중하',2:'중',3:'중상',4:'최상'}[star]||'중'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p;
 }
 // 문제 난이도(티어) → 보상 강화: 어려운 문제일수록 높은 등급 확률↑. 일반 모드는 보상 보정(+2단계).
 const TIER_RANK={'하':0,'중하':1,'중':2,'중상':3,'상':4,'최상':5};
 function gachaStar(tier,mode){ const t=Math.min(5,(TIER_RANK[tier]||0)+(mode==="normal"?2:0)),r=Math.random(),p4=0.02+t*0.02,p3=0.22+t*0.05; if(r<p4)return 4; if(r<p4+p3)return 3; return 2; }
-function tierBonus(tier){ return Math.min(0.08,(TIER_RANK[tier]||0)*0.018); } // 합성 성공률 난이도 보너스
 
 /* ============================================================
    타워 / 몬스터 정의 (개성 + 4역할 체계)
@@ -456,11 +489,8 @@ function effStats(type,star){ const T=TYPES[type]; const s={ ...T,
 const VAL=[0,30,70,150,360,900];
 function sellPrice(star){ return Math.floor(VAL[star]*0.4); }
 // 합성: 입력 등급(별 1~4) 기준 비용·성공확률 — 고등급일수록 매우 비싸고 확률이 급락
-const SYN_COST=[0,30,80,200,500], SYN_RATE=[0,.90,.55,.28,.08];
+const SYN_COST=[0,30,80,200,500];
 const UPG_COST=[0,50,130,320];   // 설치 타워 강화 비용 (현재 별 1·2·3 → +1). 4★→5★(신화)는 합성 전용.
-const UPG_PITY={1:3,2:4,3:5};    // 강화 천장: 현재 별 등급별로 따로 누적 (낮은 성공률일수록 큰 값)
-// 천장: 합성 실패할 때마다 포인트 누적, 가득 차면 다음 합성 100% 확정 (성공 시 0으로 초기화)
-const PITY_MAX={3:5,4:6};
 
 const MTYPE={
   grunt:{name:'고블린',emoji:'👺',hp:1,spd:1,reward:1,color:'#6fce5a'},
@@ -508,10 +538,13 @@ const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken'
    맵 / 상태
    ============================================================ */
 const DIFF={
-  normal:{label:'일반',lives:20,gold:150,hp:18,hpA:.16,hpB:.14,spd:1.12,spdA:.02,rwd:5,rwdA:.7},
-  hard:{label:'하드코어',lives:12,gold:130,hp:30,hpA:.26,hpB:.12,spd:1.45,spdA:.025,rwd:6,rwdA:.6},
+  normal:{label:'일반',lives:20,gold:150,hp:18,hpA:.18,hpB:.20,spd:1.12,spdA:.022,rwd:5,rwdA:.7},
+  hard:{label:'하드코어',lives:12,gold:130,hp:30,hpA:.30,hpB:.20,spd:1.45,spdA:.028,rwd:6,rwdA:.6},
 };
-const GACHA_COST=55, GACHA10_COST=500;
+const GACHA_COST=55, GACHA10_COST=650;
+function gcost(base){ return Math.round(base*(1+Math.max(0,(state.wave||1)-1)*0.04)); } // 웨이브↑ → 모든 소비 비용↑ (골드 싱크)
+const NUKE_BASE=320;
+function nukeCost(){ return Math.round(NUKE_BASE*(1+Math.max(0,(state.wave||1)-1)*0.12)); } // 메테오: 후반일수록 비싸지는 소비처
 const PATH=[{x:-40,y:90},{x:632,y:90},{x:632,y:220},{x:90,y:220},{x:90,y:350},{x:760,y:350}];
 const SEG=[]; let PATH_LEN=0;
 for(let i=0;i<PATH.length-1;i++){const a=PATH[i],b=PATH[i+1],d=Math.hypot(b.x-a.x,b.y-a.y);SEG.push({a,b,len:d,acc:PATH_LEN});PATH_LEN+=d;}
@@ -570,14 +603,13 @@ function renderInventory(){ const box=$("inventory"); box.innerHTML="";
 function updateSynBtn(){ const sel=[...state.selected].map(id=>state.inventory.find(t=>t.id===id)).filter(Boolean);
   const btn=$("btn-syn"),tip=$("inv-tip");
   const pairOk=sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<5;
-  if(pairOk){ const star=sel[0].star,cost=SYN_COST[star],rate=Math.round(SYN_RATE[star]*100),afford=state.gold>=cost;
-    const hasPity=(star===3||star===4),guar=hasPity&&state.pity[star]>=PITY_MAX[star];
-    btn.disabled=!afford; btn.innerHTML=`⚒️ 타워 합성 <span class="small">(E)</span><br><span class="small">-${cost}G · ${guar?'⭐확정':'성공 '+rate+'%'}</span>`;
-    tip.textContent=!afford?`골드 부족 (${cost}G 필요)`:(hasPity?`${STAR_NAME[star]}+${STAR_NAME[star]} 천장 ${state.pity[star]}/${PITY_MAX[star]}`:`${STAR_NAME[star]}→${STAR_NAME[star+1]} 도전!`);
+  if(pairOk){ const star=sel[0].star,cost=gcost(SYN_COST[star]),afford=state.gold>=cost;
+    btn.disabled=!afford; btn.innerHTML=`⚒️ 타워 합성 <span class="small">(E)</span><br><span class="small">-${cost}G · 정답이면 성공!</span>`;
+    tip.textContent=!afford?`골드 부족 (${cost}G 필요)`:`${STAR_NAME[star]}+${STAR_NAME[star]} → ${STAR_NAME[star+1]} 도전!`;
   } else { btn.disabled=true; btn.innerHTML=`⚒️ 타워 합성 <span class="small">(E)</span><br><span class="small">같은 등급 2개</span>`;
     if(sel.length===2&&sel[0].star===5) tip.textContent="신화는 더 합성 불가!";
     else if(sel.length===2&&sel[0].star!==sel[1].star) tip.textContent="같은 등급 2개만 합성 가능";
-    else tip.textContent=`천장: 영웅+영웅 ${state.pity?state.pity[3]:0}/${PITY_MAX[3]} · 전설+전설 ${state.pity?state.pity[4]:0}/${PITY_MAX[4]}`; } }
+    else tip.textContent=`같은 등급 2개 선택 → 합성 (정답이면 100% 성공!)`; } }
 function statLine(type,star){ const T=TYPES[type],st=effStats(type,star);
   if(T.kind==='attack') return `공격력 ${st.dmg} · 사거리 ${st.range}${st.splash?' · 광역':''}`;
   if(T.kind==='buff') return `주변 타워 공격력×${st.buffDmg.toFixed(2)}, 공격속도↑`;
@@ -587,11 +619,9 @@ function statLine(type,star){ const T=TYPES[type],st=effStats(type,star);
   return ''; }
 function renderTowerInfo(){ const box=$("tower-info"); const s=state.selSlot;
   if(s&&s.tower){ const T=TYPES[s.tower.type],col=STAR_COLOR[s.tower.star],star=s.tower.star; box.classList.remove("hidden");
-    const canUpg=star<=3, upgCost=canUpg?UPG_COST[star]:0, upgRate=canUpg?Math.round(SYN_RATE[star]*100):0, afford=state.gold>=upgCost;
-    const pityN=(state.upity?state.upity[star]:0)||0, guar=canUpg&&pityN>=UPG_PITY[star];
+    const canUpg=star<=3, upgCost=canUpg?gcost(UPG_COST[star]):0, afford=state.gold>=upgCost;
     const upgHtml=canUpg
-      ? `<button class="btn btn-blue" id="ti-upg" style="width:100%;margin-top:8px;${afford?'':'filter:grayscale(.7) brightness(.65);'}">⬆️ 강화 ${STAR_NAME[star]}→${STAR_NAME[star+1]} <span class="small">(R · -${upgCost}G · ${guar?'⭐확정':'성공 '+upgRate+'%'})</span></button>
-         <div class="ti-stat" style="color:#9fb3d9;text-align:center;margin-top:3px">강화 천장 ${pityN}/${UPG_PITY[star]}</div>`
+      ? `<button class="btn btn-blue" id="ti-upg" style="width:100%;margin-top:8px;${afford?'':'filter:grayscale(.7) brightness(.65);'}">⬆️ 강화 ${STAR_NAME[star]}→${STAR_NAME[star+1]} <span class="small">(R · -${upgCost}G · 정답이면 성공!)</span></button>`
       : `<div class="ti-stat" style="color:#ffd98a;margin-top:8px">⭐ 신화는 전설+전설 합성으로만 도달할 수 있어요.</div>`;
     box.innerHTML=`<div class="ti-top"><span class="ti-em">${T.emoji}</span><div><div class="ti-name">${T.name} ${starStr(star,col)}</div><div class="ti-role" style="color:${ROLE_COLOR[T.role]}">${T.role} · ${STAR_NAME[star]}</div></div></div>
       <div class="ti-stat">${statLine(s.tower.type,star)}</div>
@@ -617,12 +647,17 @@ function addTower(type,star){ state.inventory.push({id:++invId,type,star}); rend
 function startUpgrade(){ const s=state.selSlot; if(!s||!s.tower)return; if(paused())return; const star=s.tower.star;
   if(star>3){ toast("신화는 전설+전설 합성으로만 가능해요"); return; }
   if(state.gold<UPG_COST[star]){ toast("골드가 부족해요!"); return; }
-  state.gold-=UPG_COST[star]; updateHUD(); state._upgSlot=s; openQuiz("upgrade"); }
+  const cost=gcost(UPG_COST[star]); if(state.gold<cost){ toast("골드가 부족해요!"); return; }
+  state.gold-=cost; updateHUD(); state._upgSlot=s; openQuiz("upgrade"); }
 function openQuiz(kind){ state.quizOpen=true; state.quizAnswered=false; state.pendingReward=null;
-  const prob=makeProblem(state.diff,state.wave,kind==="gacha10"); state._prob=prob; state._kind=kind;
+  let prob;
+  if(kind==="synthesis"&&state._synPair) prob=gradedProblem(state.diff,state._synPair.star);
+  else if(kind==="upgrade"&&state._upgSlot&&state._upgSlot.tower) prob=gradedProblem(state.diff,state._upgSlot.tower.star);
+  else prob=makeProblem(state.diff,state.wave,kind==="gacha10");
+  state._prob=prob; state._kind=kind;
   $("quiz-tag").textContent=kind==="gacha"?"🎁 타워 뽑기 퀴즈":(kind==="upgrade"?"⬆️ 타워 강화 퀴즈":(kind==="gacha10"?"🎁×10 한방 뽑기 (고난도)":"⚒️ 타워 합성 퀴즈"));
-  let tierTxt="난이도 "+prob.tier; if(kind==="synthesis"&&state._synPair){ const st=state._synPair.star,er=Math.min(.98,SYN_RATE[st]+tierBonus(prob.tier)); state._synRate=er; const guar=(st===3||st===4)&&state.pity[st]>=PITY_MAX[st]; tierTxt+= guar?" · ⭐확정 합성!":` · 성공확률 ${Math.round(er*100)}%`; }
-  if(kind==="upgrade"&&state._upgSlot&&state._upgSlot.tower){ const st=state._upgSlot.tower.star,er=Math.min(.98,SYN_RATE[st]+tierBonus(prob.tier)); state._upgRate=er; const guar=state.upity[st]>=UPG_PITY[st]; tierTxt+= guar?" · ⭐확정 강화!":` · 성공확률 ${Math.round(er*100)}%`; }
+  let tierTxt="난이도 "+prob.tier;
+  if(kind==="synthesis"||kind==="upgrade") tierTxt+=" · 정답이면 성공!";
   $("quiz-tier").textContent=tierTxt;
   $("quiz-q").innerHTML=`<span class="fn">${escapeHtml(prob.q)}</span>`;
   $("quiz-result").textContent=""; $("quiz-result").className="quiz-result"; $("quiz-sub").textContent=""; $("quiz-exp").textContent="";
@@ -653,32 +688,27 @@ function answer(btn,chosen,correct,kind){ if(state.quizAnswered)return; state.qu
   } else if(kind==="upgrade"){
     const slot=state._upgSlot;
     if(slot&&slot.tower){ const st=slot.tower.star;
-      const guaranteed=state.upity[st]>=UPG_PITY[st];
-      const success = ok && (guaranteed || Math.random()<(state._upgRate||SYN_RATE[st]));
-      if(success){ slot.tower.star=st+1; reward={type:slot.tower.type,star:st+1}; state.upity[st]=0;
+      if(ok){ slot.tower.star=st+1; reward={type:slot.tower.type,star:st+1};
         spawnRing(slot.x,slot.y,STAR_COLOR[st+1]); spawnFloat(slot.x,slot.y-12,`${STAR_NAME[st+1]}!`,STAR_COLOR[st+1]);
-        res.textContent=guaranteed?"⭐ 확정 강화 성공!":(st+1>=4?"🎉 대성공!":"🎉 강화 성공!"); res.className="quiz-result good";
+        res.textContent=st+1>=4?"🎉 대성공!":"🎉 강화 성공!"; res.className="quiz-result good";
         sub.textContent=`${TYPES[slot.tower.type].name} 이(가) ${STAR_NAME[st+1]} 등급으로!`;
-      } else { state.upity[st]=Math.min(UPG_PITY[st],state.upity[st]+1);
-        res.textContent="💢 강화 실패"; res.className="quiz-result bad";
-        sub.textContent=(ok?"확률에 실패했어요.":"오답 — 강화 실패.")+` 등급은 유지 (강화 천장 ${state.upity[st]}/${UPG_PITY[st]}).`; }
+      } else { res.textContent="💢 강화 실패"; res.className="quiz-result bad";
+        sub.textContent="오답이에요 — 등급은 그대로 유지되고 골드만 소모됐어요."; }
       renderTowerInfo();
     }
     state._upgSlot=null;
   } else { // synthesis
     const pair=state._synPair, sel=pair?pair.ids.map(id=>state.inventory.find(t=>t.id===id)).filter(Boolean):[];
     const star=pair?pair.star:0;
-    const hasPity=(star===3||star===4);                       // 천장은 3+3, 4+4 합성에만
-    const guaranteed=hasPity&&state.pity[star]>=PITY_MAX[star];     // 해당 등급 천장 도달 시 확정
-    const success = sel.length===2 && ok && (guaranteed || Math.random()<(state._synRate||SYN_RATE[star]));
-    if(sel.length===2){ state.inventory=state.inventory.filter(t=>!pair.ids.includes(t.id)); } // 재료 2개 소멸
-    if(success){ const type=pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1}; if(hasPity)state.pity[star]=0;
-      res.textContent=guaranteed?"⭐ 확정 합성 성공!":"🎉 합성 성공!"; res.className="quiz-result good";
+    if(sel.length===2 && ok){ // 정답 → 100% 성공: 재료 2개 소모, +1등급
+      state.inventory=state.inventory.filter(t=>!pair.ids.includes(t.id));
+      const type=pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1};
+      res.textContent=star+1>=5?"⭐ 신화 합성 성공!!":"🎉 합성 성공!"; res.className="quiz-result good";
       sub.textContent=`${STAR_NAME[star+1]} ${TYPES[type].name} ${TYPES[type].emoji} 로 진화!`;
-    } else { // 실패: 재료는 사라지고, 같은 등급의 새 타워 1개 지급. (3+3/4+4만 천장 +1)
-      if(sel.length===2){ const type=weightedType(); addTower(type,star); if(hasPity)state.pity[star]=Math.min(PITY_MAX[star],state.pity[star]+1); }
+    } else { // 오답 → 완화: 재료 1개만 소모
+      if(sel.length>=1){ const lost=sel[0]; state.inventory=state.inventory.filter(t=>t.id!==lost.id); }
       res.textContent="💢 합성 실패"; res.className="quiz-result bad";
-      sub.textContent=(ok?"확률 실패":"오답")+` — 재료가 ${STAR_NAME[star]} 새 타워 1개로 바뀌었어요.`+(hasPity?` (${STAR_NAME[star]}+${STAR_NAME[star]} 천장 ${state.pity[star]}/${PITY_MAX[star]})`:"");
+      sub.textContent=`오답이에요 — 재료 1개만 사라지고 ${sel.length>=2?STAR_NAME[star]+' 타워 1개는 그대로 남았어요.':'끝났어요.'}`;
     }
     state.selected.clear(); state._synPair=null;
   }
@@ -703,12 +733,20 @@ function celebrate(rw){ state.celebrating=true; const T=TYPES[rw.type],col=STAR_
 }
 
 /* ---------- 버튼 ---------- */
-$("btn-gacha").onclick=()=>{ if(paused())return; if(state.gold<GACHA_COST){ toast("골드가 부족해요! 몬스터를 더 잡으세요 💰"); return; } state.gold-=GACHA_COST; updateHUD(); openQuiz("gacha"); };
-$("btn-gacha10").onclick=()=>{ if(paused())return; if(state.gold<GACHA10_COST){ toast("골드가 부족해요! (500G 필요)"); return; } state.gold-=GACHA10_COST; updateHUD(); openQuiz("gacha10"); };
+$("btn-gacha").onclick=()=>{ if(paused())return; const c=gcost(GACHA_COST); if(state.gold<c){ toast("골드가 부족해요! 몬스터를 더 잡으세요 💰"); return; } state.gold-=c; updateHUD(); openQuiz("gacha"); };
+$("btn-gacha10").onclick=()=>{ if(paused())return; const c=gcost(GACHA10_COST); if(state.gold<c){ toast(`골드가 부족해요! (${c}G 필요)`); return; } state.gold-=c; updateHUD(); openQuiz("gacha10"); };
+$("btn-nuke").onclick=()=>{ if(paused())return; const c=nukeCost(); if(state.gold<c){ toast(`골드가 부족해요! (${c}G 필요)`); return; } if(!state.monsters.length){ toast("처치할 적이 없어요"); return; }
+  state.gold-=c; updateHUD(); SFX.bomb(); state.shake=Math.max(state.shake,16);
+  const arr=state.monsters.slice(); for(const m of arr){ const p=pointAt(m.d); m.hp-=m.max*0.45; spawnBoom(p.x,p.y); if(m.hp<=0)killMonster(m,p); }
+  toast("☄️ 융합 포격! 전체 데미지"); };
+$("btn-sellsel").onclick=()=>{ if(paused())return; const ids=[...state.selected]; if(!ids.length){ toast("판매할 타워를 먼저 선택하세요"); return; }
+  let sum=0,n=0; for(const id of ids){ const t=state.inventory.find(x=>x.id===id); if(t){ sum+=sellPrice(t.star); n++; } }
+  state.inventory=state.inventory.filter(t=>!state.selected.has(t.id)); state.selected.clear(); state.infoInv=null; state.gold+=sum;
+  toast(`💰 ${n}개 일괄 판매 (+${sum}G)`); renderInventory(); renderTowerInfo(); updateHUD(); updateSynBtn(); SFX.sell(); };
 $("btn-syn").onclick=()=>{ if(paused()||$("btn-syn").disabled)return;
   const sel=[...state.selected].map(id=>state.inventory.find(t=>t.id===id)).filter(Boolean);
   if(!(sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<5))return;
-  const star=sel[0].star,cost=SYN_COST[star]; if(state.gold<cost){ toast("골드가 부족해요!"); return; }
+  const star=sel[0].star,cost=gcost(SYN_COST[star]); if(state.gold<cost){ toast("골드가 부족해요!"); return; }
   state.gold-=cost; updateHUD(); state._synPair={ids:sel.map(t=>t.id),star}; openQuiz("synthesis"); };
 $("btn-pause").onclick=()=>togglePause();
 $("btn-resume").onclick=()=>togglePause();
@@ -732,11 +770,14 @@ function buildWave(w){ const list=[]; const n=6+Math.floor(w*1.7);
 function startWave(){ const b=$("wave-banner"); b.textContent="WAVE "+state.wave; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); SFX.wave();
   state.spawn.queue=buildWave(state.wave); state.spawn.idx=0; state.spawn.cd=20; }
 function spawnMonster(type){ const cfg=DIFF[state.diff],w=state.wave,M=MTYPE[type];
-  const waveHp=cfg.hp*(1+(w-1)*cfg.hpA+Math.max(0,w-5)*cfg.hpB);
-  const waveSpd=cfg.spd*(1+(w-1)*cfg.spdA);
+  const midHp=1+Math.max(0,w-7)*0.10;                 // 중반(8웨이브)부터 체력 가속
+  const midSpd=1+Math.max(0,w-7)*0.012;               // 중반부터 속도 가속
+  const bossMul=M.boss?(1+Math.max(0,w-10)*0.06):1;   // 보스는 후반 추가 체력
+  const waveHp=cfg.hp*(1+(w-1)*cfg.hpA+Math.max(0,w-5)*cfg.hpB)*midHp;
+  const waveSpd=Math.min(cfg.spd*(1+(w-1)*cfg.spdA)*midSpd, 4.6); // 속도 상한(프레임 스킵 방지)
   const waveRwd=cfg.rwd+Math.floor(w*cfg.rwdA);
-  const hp=Math.round(waveHp*M.hp*(M.boss?1:1));
-  state.monsters.push({type,d:0,hp,max:hp,spd:waveSpd*M.spd,reward:Math.max(1,Math.round(waveRwd*M.reward)),slowT:0,slowAmt:1,stunT:0,vuln:1});
+  const hp=Math.round(waveHp*M.hp*bossMul);
+  state.monsters.push({type,d:0,hp,max:hp,spd:Math.min(waveSpd*M.spd,5),reward:Math.max(1,Math.round(waveRwd*M.reward)),slowT:0,slowAmt:1,stunT:0,vuln:1});
   if(M.boss){ toast(`⚠️ 보스 출현: ${M.name} ${M.emoji}`); state.shake=Math.max(state.shake,9); SFX.boss(); } }
 
 /* ---------- 업데이트 ---------- */
@@ -1001,7 +1042,7 @@ function pstroke(){ ctx.beginPath(); ctx.moveTo(PATH[0].x,PATH[0].y); for(let i=
 
 /* ---------- HUD / 루프 ---------- */
 function calcScore(){ return Math.max(0,(state.wave-1))*100 + state.kills*5; }
-function updateHUD(){ $("hud-wave").textContent=state.wave; $("hud-life").textContent=Math.max(0,state.lives); $("hud-gold").textContent=state.gold; $("btn-gacha").disabled=state.gold<GACHA_COST; $("btn-gacha10").disabled=state.gold<GACHA10_COST;
+function updateHUD(){ $("hud-wave").textContent=state.wave; $("hud-life").textContent=Math.max(0,state.lives); $("hud-gold").textContent=state.gold; $("btn-gacha").disabled=state.gold<gcost(GACHA_COST); $("btn-gacha10").disabled=state.gold<gcost(GACHA10_COST); { const nb=$("btn-nuke"); if(nb)nb.disabled=state.gold<nukeCost(); }
   $("score-tag").textContent=`🏅 점수 ${calcScore()} · ${state.wave}W · ${state.kills}킬`; }
 let lastT=0;
 function loop(t){ if(state.screen==="game"){ const dt=lastT?Math.min((t-lastT)/16.67,3):1; lastT=t; if(!paused())update(dt); draw(); } else lastT=0; requestAnimationFrame(loop); }
@@ -1013,7 +1054,7 @@ function renderBoard(list){ const box=$("lb-list"); box.innerHTML=""; const sc=r
   if(!s.length){ box.innerHTML='<div class="lb-mode">아직 기록이 없어요. 1등이 되어보세요!</div>'; return; }
   s.forEach((r,i)=>{ const md=["🥇","🥈","🥉"][i]||`${i+1}.`; const row=document.createElement("div"); row.className="lb-row"; row.innerHTML=`<span class="rk">${md}</span><span class="nm">${escapeHtml(r.name)}</span><span class="wv">${sc(r)}점·${r.wave}W</span>`; box.appendChild(row); }); }
 function subscribeBoard(diff){ $("lb-mode").textContent=`(${DIFF[diff].label})`; if(state.lbUnsub){state.lbUnsub();state.lbUnsub=null;}
-  if(FB){ const q=FB.query(FB.ref(FB.db,"scores/"+diff),FB.orderByChild("score"),FB.limitToLast(8)); state.lbUnsub=FB.onValue(q,snap=>{const a=[];snap.forEach(c=>a.push(c.val()));renderBoard(a);}); }
+  if(FB){ const r=FB.ref(FB.db,"scores/"+diff); state.lbUnsub=FB.onValue(r,snap=>{const a=[];snap.forEach(c=>a.push(c.val()));renderBoard(a);}); }
   else renderBoard(localScores[diff]); }
 function submitScore(diff,e){ if(FB){ try{FB.push(FB.ref(FB.db,"scores/"+diff),e);}catch(err){} } else { localScores[diff].push(e); renderBoard(localScores[diff]); } }
 
@@ -1025,7 +1066,7 @@ $("btn-retry").onclick=()=>{ audioInit(); startGame(); };
 $("btn-quit").onclick=()=>show("login");
 
 function startGame(){ const cfg=DIFF[state.diff];
-  Object.assign(state,{ lives:cfg.lives,gold:cfg.gold,wave:1,kills:0,pity:{3:0,4:0},upity:{1:0,2:0,3:0},monsters:[],projectiles:[],particles:[],floats:[],inventory:[],selected:new Set(),selSlot:null,infoInv:null,manualPause:false,quizOpen:false,quizAnswered:false,pendingReward:null,_synPair:null,celebrating:false,shake:0,drag:null });
+  Object.assign(state,{ lives:cfg.lives,gold:cfg.gold,wave:1,kills:0,monsters:[],projectiles:[],particles:[],floats:[],inventory:[],selected:new Set(),selSlot:null,infoInv:null,manualPause:false,quizOpen:false,quizAnswered:false,pendingReward:null,_synPair:null,celebrating:false,shake:0,drag:null });
   state.spawn={queue:[],idx:0,cd:0,between:140}; SLOTS.forEach(s=>s.tower=null); state._ended=false;
   // 시작 1성 딜러 2개
   const starters=['knight','archer','lancer','mage']; addTower(pk(starters),1); addTower(pk(starters),1);
