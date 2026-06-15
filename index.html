@@ -1054,12 +1054,15 @@ function loop(t){ if(state.screen==="game"){ const dt=lastT?Math.min((t-lastT)/1
 requestAnimationFrame(loop);
 
 /* ---------- 랭킹 ---------- */
-function renderBoard(list){ const box=$("lb-list"); box.innerHTML=""; const sc=r=>r.score!=null?r.score:Math.max(0,(r.wave-1))*100;
-  const s=(list||[]).slice().sort((a,b)=>sc(b)-sc(a)).slice(0,5);
+function renderBoard(list){ const box=$("lb-list"); box.innerHTML="";
+  const num=v=>{const n=Number(v);return isFinite(n)?n:0;};
+  const sc=r=>{ const s=num(r&&r.score); if(s>0)return s; return Math.max(0,(num(r&&r.wave)-1))*100; };
+  const wv=r=>Math.max(0,num(r&&r.wave));
+  const s=(list||[]).filter(r=>r&&(r.name!=null)).slice().sort((a,b)=>sc(b)-sc(a)).slice(0,5);
   if(!s.length){ box.innerHTML='<div class="lb-mode">아직 기록이 없어요. 1등이 되어보세요!</div>'; return; }
-  s.forEach((r,i)=>{ const md=["🥇","🥈","🥉"][i]||`${i+1}.`; const row=document.createElement("div"); row.className="lb-row"; row.innerHTML=`<span class="rk">${md}</span><span class="nm">${escapeHtml(r.name)}</span><span class="wv">${sc(r)}점·${r.wave}W</span>`; box.appendChild(row); }); }
+  s.forEach((r,i)=>{ const md=["🥇","🥈","🥉"][i]||`${i+1}.`; const row=document.createElement("div"); row.className="lb-row"; row.innerHTML=`<span class="rk">${md}</span><span class="nm">${escapeHtml(r.name)}</span><span class="wv">${sc(r)}점·${wv(r)}W</span>`; box.appendChild(row); }); }
 function subscribeBoard(diff){ $("lb-mode").textContent=`(${DIFF[diff].label})`; if(state.lbUnsub){state.lbUnsub();state.lbUnsub=null;}
-  if(FB){ const r=FB.ref(FB.db,"scores/"+diff); state.lbUnsub=FB.onValue(r,snap=>{const a=[];snap.forEach(c=>a.push(c.val()));renderBoard(a);}); }
+  if(FB){ const r=FB.ref(FB.db,"scores/"+diff); state.lbUnsub=FB.onValue(r,snap=>{const a=[];snap.forEach(c=>a.push(c.val()));console.log(`[명예의전당:${diff}] 서버에서 받은 기록 수:`,a.length); renderBoard(a);},err=>{console.warn("[명예의전당] 읽기 실패:",err&&err.code,err&&err.message);}); }
   else renderBoard(localScores[diff]); }
 function submitScore(diff,e){ localScores[diff]=localScores[diff]||[];
   if(FB){ try{ const p=FB.push(FB.ref(FB.db,"scores/"+diff),e);
