@@ -1094,7 +1094,7 @@ function loadSave(sid){ if(!firebaseConfig.databaseURL) return Promise.resolve(n
 function applySave(d){ state.diff=DIFF[d.diff]?d.diff:'normal'; const cfg=DIFF[state.diff];
   Object.assign(state,{ lives:d.lives,gold:d.gold,wave:d.wave||1,kills:d.kills||0,monsters:[],projectiles:[],particles:[],floats:[],inventory:[],selected:new Set(),selSlot:null,infoInv:null,manualPause:false,quizOpen:false,quizAnswered:false,pendingReward:null,_synPair:null,_upgSlot:null,celebrating:false,shake:0,drag:null });
   state.spawn={queue:[],idx:0,cd:0,between:140}; state._ended=false;
-  SLOTS.forEach((s,i)=>{ const t=d.slots&&d.slots[i]; s.tower= t?{type:t.t,star:t.s}:null; });
+  SLOTS.forEach((s,i)=>{ const t=d.slots&&d.slots[i]; s.tower= t?{type:t.t,star:t.s,t:0,gtimer:0}:null; });
   state.inventory=(d.inv||[]).map(o=>({id:++invId,type:o.t,star:o.s}));
   $("mode-tag").textContent=cfg.label; $("mode-tag").className="badge "+(state.diff==="hard"?"h":"n"); $("who-tag").textContent=`${state.sid} ${state.name}`;
   $("quiz").classList.add("hidden"); $("pause-overlay").classList.add("hidden");
