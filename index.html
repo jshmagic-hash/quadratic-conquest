@@ -1051,7 +1051,8 @@ function updateHUD(){ $("hud-wave").textContent=state.wave; $("hud-life").textCo
   { const l=$("lbl-gacha"); if(l)l.textContent=`타워 1개 뽑기 · -${cg} G`; }
   { const l=$("lbl-gacha10"); if(l)l.textContent=`고난도 문제 1개 → 정답 시 타워 10개 · -${cg10} G`; }
   { const l=$("lbl-nuke"); if(l)l.textContent=`화면의 모든 적에게 데미지 · -${cn} G`; }
-  $("score-tag").textContent=`🏅 점수 ${calcScore()} · ${state.wave}W · ${state.kills}킬`; }
+  $("score-tag").textContent=`🏅 점수 ${calcScore()} · ${state.wave}W · ${state.kills}킬`;
+  if(typeof updateSynBtn==="function")updateSynBtn(); }
 let lastT=0;
 function loop(t){ if(state.screen==="game"){ const dt=lastT?Math.min((t-lastT)/16.67,3):1; lastT=t; if(!paused())update(dt); draw(); } else lastT=0; requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
