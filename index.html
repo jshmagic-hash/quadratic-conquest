@@ -178,7 +178,7 @@
         <div class="diff-card hard" data-diff="hard">
           <span class="badge h">HARDCORE</span><h3>하드코어 모드</h3>
           <p style="color:#b9c8e6;font-size:13px;margin:6px 0 0">초반부터 빡세다. 고수만 살아남는다 💀</p>
-          <ul><li>문제 유형: <b>대칭이동</b> (x축·y축 대칭, 난이도↑)</li><li>몬스터가 더 강하고 빠름</li><li>생명 12 · 시작 골드 130</li></ul>
+          <ul><li>문제 유형: <b>평행이동·그래프 해석·대칭</b> (난이도↑)</li><li>몬스터가 더 강하고 빠름 · 보스 다수</li><li>생명 12 · 시작 골드 150</li></ul>
         </div>
       </div>
       <div id="resume-box" class="hidden" style="margin:12px auto 0;max-width:520px;background:rgba(122,240,200,.12);border:1px solid rgba(122,240,200,.45);border-radius:14px;padding:12px 16px;">
@@ -424,13 +424,13 @@ function g_symWhich(A){const a=pk(A||DA),p=nz(-2,3),base=fq(a,p,0),xaxis=Math.ra
   const b=build(ans,['x축','y축','원점'],null,3);
   return{q:`${base} 의 그래프를 어떤 직선/점에 대하여 대칭이동했더니 ${res} 가 되었다. 무엇에 대한 대칭인가?`,...b,explain:"a의 부호만 바뀌면 x축, (x-p)의 부호만 바뀌면 y축 대칭."};}
 
-// 하드코어: 전부 대칭이동(세 형태 한정), 등급↑ → 사고력형 비중↑
+// 하드코어: 평행이동(x·y)·그래프 해석 위주 + 대칭이동 일부 — 세 형태만, 중3 범위
 const TIER_GEN={
-  '중하':[A=>g_symXeq(A,false),A=>g_symYeq(A,false),A=>g_symVertex(A)],
-  '중':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symVertex(A),A=>g_symAxis(A)],
-  '중상':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symAxis(A),A=>g_symWhich(A),A=>g_symVertex(A)],
-  '상':[A=>g_symWhich(A),A=>g_symAxis(A),A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symVertex(A)],
-  '최상':[A=>g_symWhich(A),A=>g_symAxis(A),A=>g_symXeq(A,true),A=>g_symYeq(A,true)],
+  '중하':[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_vertex('ax2q',A),A=>g_vertex('axp2',A),A=>g_convex(A),A=>g_width(A)],
+  '중':[A=>g_transXrev(A),A=>g_transYrev(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_axis(A),A=>g_vertexToEq(A),A=>g_widthcmp(A),A=>g_symXeq(A,false)],
+  '중상':[A=>g_transXrev(A),A=>g_transYrev(A),A=>g_axis(A),A=>g_incdec(A),A=>g_onpoint(A),A=>g_vertexToEq(A),A=>g_symXeq(A,true),A=>g_symVertex(A)],
+  '상':[A=>g_axis(A),A=>g_incdec(A),A=>g_onpoint(A),A=>g_vertexToEq(A),A=>g_widthcmp(A),A=>g_symYeq(A,true),A=>g_symVertex(A),A=>g_symWhich(A)],
+  '최상':[A=>g_incdec(A),A=>g_onpoint(A),A=>g_vertexToEq(A),A=>g_axis(A),A=>g_transXrev(A),A=>g_symXeq(A,true),A=>g_symAxis(A),A=>g_symWhich(A)],
 };
 // 일반 모드: 평행이동 반복 연습(정수만). '하' 기본, '중하' 약간 심화.
 const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
@@ -451,11 +451,11 @@ function makeProblem(mode,wave,forceHard){
 // 합성·강화 등급 게이트: 등급이 높을수록 어려운 문제 (일반=평행이동, 하드=대칭이동)
 function gradedProblem(mode,star){
   if(mode==="normal"){ const pool=star<=2?NORMAL_EASY:NORMAL_JUNGHA; const p=pk(pool)([1,1,-1,2,-2]); p.tier=star<=2?'하':'중하'; return p; }
-  const tier={1:'중하',2:'중',3:'중상',4:'최상'}[star]||'중'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p;
+  const tier={1:'중하',2:'중',3:'중상',4:'상',5:'최상'}[star]||'최상'; const p=pk(TIER_GEN[tier])([1,-1,2,-2,3]); p.tier=tier; return p;
 }
 // 문제 난이도(티어) → 보상 강화: 어려운 문제일수록 높은 등급 확률↑. 일반 모드는 보상 보정(+2단계).
 const TIER_RANK={'하':0,'중하':1,'중':2,'중상':3,'상':4,'최상':5};
-function gachaStar(tier,mode){ const t=Math.min(5,(TIER_RANK[tier]||0)+(mode==="normal"?2:0)),r=Math.random(),p4=0.015+t*0.03,p3=0.18+t*0.06; if(r<p4)return 4; if(r<p4+p3)return 3; return 2; }
+function gachaStar(tier,mode){ const t=Math.min(5,(TIER_RANK[tier]||0)+(mode==="normal"?2:0)),r=Math.random(),p4=0.03+t*0.035,p3=0.22+t*0.07; if(r<p4)return 4; if(r<p4+p3)return 3; return 2; }
 
 /* ============================================================
    타워 / 몬스터 정의 (개성 + 4역할 체계)
@@ -473,27 +473,28 @@ const TYPES={
   alchemist:{name:'독 연금술사',emoji:'☠️',role:'서포터',sub:'받는 피해 증가·중독',kind:'debuff',range:116,desc:'사거리 안의 적이 받는 피해를 늘리고 서서히 중독 피해를 줍니다. 물리 딜러의 추가타 조건을 만들어줍니다.'},
   vault:{name:'황금 금고',emoji:'🏦',role:'유틸리티',sub:'골드 이자',kind:'vault',range:70,desc:'공격하지 않습니다. 일정 시간마다 골드를 자동으로 벌어줍니다. 초반에 깔아두면 후반 경제가 든든해집니다.'},
   roulette:{name:'행운의 룰렛',emoji:'🎰',role:'유틸리티',sub:'처치 보너스 골드',kind:'roll',range:150,desc:'사거리 안에서 적을 처치하면 확률적으로 보너스 골드를 줍니다. 길목 한가운데에 두면 효율이 좋아요.'},
+  celestial:{name:'창세의 성좌',emoji:'🌟',role:'마법딜러',sub:'초월 광역 강타',kind:'attack',dmg:46,range:175,cd:30,proj:'orb',splash:72,physBonus:true,desc:'⭐ 신화+신화 합성으로만 얻는 6성 전용 타워. 압도적인 광역 피해로 보스 무리를 쓸어버립니다.'},
 };
 const GACHA_WEIGHT={ knight:14,archer:12,lancer:10,mage:12,cannon:8,frost:9,thunder:8,drummer:7,alchemist:6,vault:4,roulette:4 };
 function weightedType(){ let tot=0; for(const k in GACHA_WEIGHT)tot+=GACHA_WEIGHT[k]; let r=Math.random()*tot; for(const k in GACHA_WEIGHT){ r-=GACHA_WEIGHT[k]; if(r<=0)return k; } return 'knight'; }
 
-const STAR_DMG=[0,1,1.9,3.4,6.0,16], STAR_RANGE=[0,1,1.06,1.12,1.18,1.34], STAR_CD=[0,1,.92,.84,.76,.55];
-const STAR_NAME=['','일반','희귀','영웅','전설','신화'], STAR_COLOR=['','#9fb0c8','#52d273','#5aa9ff','#c77dff','#ffce3d'];
+const STAR_DMG=[0,1,1.9,3.4,6.0,16,30], STAR_RANGE=[0,1,1.06,1.12,1.18,1.34,1.5], STAR_CD=[0,1,.92,.84,.76,.55,.42];
+const STAR_NAME=['','일반','희귀','영웅','전설','신화','초월'], STAR_COLOR=['','#9fb0c8','#52d273','#5aa9ff','#c77dff','#ffce3d','#ff6fe0'];
 function effStats(type,star){ const T=TYPES[type]; const s={ ...T,
   dmg:Math.round((T.dmg||0)*STAR_DMG[star]), range:Math.round((T.range||0)*(T.range?STAR_RANGE[star]:1)), cd:Math.round((T.cd||0)*STAR_CD[star]),
   splash:T.splash||0, };
-  if(T.kind==='frost'||T.proj==='ice'){ s.slow=Math.max(.3,.62-.06*star); s.slowDur=42; }
-  if(T.stun){ s.stunChance=Math.min(.6,.16+.07*star); s.stunDur=44; }
-  if(T.kind==='buff'){ s.buffDmg=star>=5?2.0:1+.12*star; s.buffCd=star>=5?.55:1-.06*star; }
-  if(T.kind==='debuff'){ s.vuln=star>=5?2.0:1+.12*star; s.dot=star>=5?4:0.5*star; }
-  if(T.kind==='vault'){ s.goldEvery=255; s.goldAmt=star>=5?20:4+2*star; }
-  if(T.kind==='roll'){ s.luckChance=star>=5?.7:Math.min(.55,.18+.06*star); s.luckAmt=star>=5?25:4+3*star; }
+  if(T.kind==='frost'||T.proj==='ice'){ s.slow=Math.max(.28,.62-.06*star); s.slowDur=42; }
+  if(T.stun){ s.stunChance=Math.min(.7,.16+.08*star); s.stunDur=44; }
+  if(T.kind==='buff'){ s.buffDmg=star>=6?2.6:star>=5?2.0:1+.12*star; s.buffCd=star>=6?.45:star>=5?.55:1-.06*star; }
+  if(T.kind==='debuff'){ s.vuln=star>=6?2.6:star>=5?2.0:1+.12*star; s.dot=star>=6?7:star>=5?4:0.5*star; }
+  if(T.kind==='vault'){ s.goldEvery=255; s.goldAmt=star>=6?32:star>=5?20:4+2*star; }
+  if(T.kind==='roll'){ s.luckChance=star>=6?.85:star>=5?.7:Math.min(.55,.18+.06*star); s.luckAmt=star>=6?40:star>=5?25:4+3*star; }
   return s; }
-const VAL=[0,30,70,150,360,900];
+const VAL=[0,30,70,150,360,900,2200];
 function sellPrice(star){ return Math.floor(VAL[star]*0.4); }
-// 합성: 입력 등급(별 1~4) 기준 비용·성공확률 — 고등급일수록 매우 비싸고 확률이 급락
-const SYN_COST=[0,30,80,200,500];
-const UPG_COST=[0,50,130,320];   // 설치 타워 강화 비용 (현재 별 1·2·3 → +1). 4★→5★(신화)는 합성 전용.
+// 합성 비용(입력 등급별): 5★+5★→6★ 포함. 강화 비용: 4★→5★ 포함(5★→6★은 합성 전용)
+const SYN_COST=[0,30,80,200,500,1100];
+const UPG_COST=[0,50,130,320,700];
 
 const MTYPE={
   grunt:{name:'고블린',emoji:'👺',hp:1,spd:1,reward:1,color:'#6fce5a'},
@@ -501,6 +502,17 @@ const MTYPE={
   tank:{name:'바위 골렘',emoji:'🗿',hp:2.7,spd:.6,reward:1.9,color:'#b9a07a'},
   swarm:{name:'박쥐 떼',emoji:'🦇',hp:.42,spd:1.35,reward:.6,color:'#9a7fd0'},
   ghost:{name:'유령',emoji:'👻',hp:.95,spd:1.12,reward:1.3,color:'#cfd8ff',noSlow:true},
+  speedy:{name:'질풍 임프',emoji:'😈',hp:.5,spd:2.05,reward:1.1,color:'#ff9f5a',draw:'runner'},
+  brute:{name:'오크 전사',emoji:'🪓',hp:3.4,spd:.72,reward:2.6,color:'#8a9a4a',draw:'tank'},
+  wisp:{name:'도깨비불',emoji:'🔥',hp:.8,spd:1.32,reward:1.3,color:'#ffd24d',draw:'swarm',noSlow:true},
+  shade:{name:'그림자 망령',emoji:'🌑',hp:1.15,spd:1.22,reward:1.6,color:'#a98fd0',draw:'ghost',noSlow:true},
+  armored:{name:'강철 기갑병',emoji:'🛡️',hp:4.4,spd:.56,reward:3.0,color:'#9aa6b8',draw:'tank'},
+  gargoyle:{name:'가고일',emoji:'🗿',hp:1.7,spd:1.0,reward:1.8,color:'#7f8aa0',draw:'grunt'},
+  slimeking:{name:'왕 슬라임',emoji:'🟢',hp:1.5,spd:1.28,reward:1.6,color:'#5fe0a0',draw:'runner'},
+  mole:{name:'땅굴 두더지',emoji:'🐀',hp:.95,spd:1.55,reward:1.2,color:'#b08a5a',draw:'grunt'},
+  hornet:{name:'독침 말벌',emoji:'🐝',hp:.7,spd:1.7,reward:1.2,color:'#e0c24a',draw:'swarm'},
+  golemling:{name:'바위 새끼',emoji:'🪨',hp:2.2,spd:.78,reward:1.8,color:'#9a8a6a',draw:'tank'},
+  banshee:{name:'밴시',emoji:'💀',hp:1.25,spd:1.15,reward:1.7,color:'#bfeede',draw:'ghost',noSlow:true},
   b_ogre:{name:'거대 오우거',emoji:'👹',hp:15,spd:.55,reward:11,color:'#ff7a4d',boss:true},
   b_dragon:{name:'화염룡',emoji:'🐲',hp:17,spd:.62,reward:13,color:'#ff5d3a',boss:true},
   b_demon:{name:'마왕',emoji:'😈',hp:16,spd:.5,reward:12,color:'#ff4d6d',boss:true},
@@ -534,15 +546,34 @@ const MTYPE={
   b_alien:{name:'외계 침략자',emoji:'👾',hp:18,spd:.76,reward:17,color:'#8a7bff',boss:true,noSlow:true},
   b_robot:{name:'파괴 로봇',emoji:'🦾',hp:26,spd:.45,reward:18,color:'#aab2c0',boss:true},
   b_devil:{name:'지옥의 대공',emoji:'👿',hp:19,spd:.62,reward:18,color:'#ff4d5d',boss:true},
+  b_hydra:{name:'아홉머리 히드라',emoji:'🐉',hp:26,spd:.5,reward:20,color:'#4ec07a',boss:true},
+  b_lich:{name:'언데드 군주 리치',emoji:'🧟',hp:18,spd:.7,reward:19,color:'#9fe0c0',boss:true,noSlow:true},
+  b_chimera:{name:'키마이라',emoji:'🦁',hp:22,spd:.66,reward:19,color:'#e09a4a',boss:true},
+  b_behemoth:{name:'베헤모스',emoji:'🦏',hp:30,spd:.4,reward:22,color:'#9aa0a8',boss:true},
+  b_leviathan:{name:'심해 리바이어던',emoji:'🐳',hp:28,spd:.46,reward:21,color:'#5a8bd0',boss:true},
+  b_basilisk:{name:'바실리스크',emoji:'🐍',hp:20,spd:.74,reward:20,color:'#7ad05a',boss:true,noSlow:true},
+  b_griffin:{name:'그리핀',emoji:'🦅',hp:19,spd:.92,reward:20,color:'#d0a85a',boss:true,noSlow:true},
+  b_manticore:{name:'만티코어',emoji:'🦂',hp:23,spd:.7,reward:21,color:'#d05a4a',boss:true},
+  b_djinn:{name:'폭풍의 진',emoji:'🌪️',hp:21,spd:.8,reward:21,color:'#7ad0e0',boss:true,noSlow:true},
+  b_warlord:{name:'오크 대군주',emoji:'🪓',hp:25,spd:.58,reward:21,color:'#8a9a4a',boss:true},
+  b_specter:{name:'심판의 망령',emoji:'☠️',hp:19,spd:.86,reward:20,color:'#cfe4ff',boss:true,noSlow:true},
+  b_juggernaut:{name:'파괴의 저거넛',emoji:'🤖',hp:32,spd:.42,reward:24,color:'#b8c2d8',boss:true},
+  b_overlord:{name:'마계 오버로드',emoji:'👹',hp:24,spd:.64,reward:22,color:'#ff6a4d',boss:true},
+  b_void:{name:'공허의 포식자',emoji:'🌌',hp:27,spd:.6,reward:23,color:'#9a6bff',boss:true,noSlow:true},
+  b_inferno:{name:'지옥불 군주',emoji:'🔥',hp:23,spd:.74,reward:22,color:'#ff7a2a',boss:true,noSlow:true},
+  b_frostking:{name:'서리 왕',emoji:'❄️',hp:26,spd:.5,reward:22,color:'#8af0ff',boss:true},
+  b_stormlord:{name:'뇌전의 군주',emoji:'⚡',hp:22,spd:.78,reward:22,color:'#ffe24a',boss:true,noSlow:true},
+  b_archfiend:{name:'대마신 아크피엔드',emoji:'😈',hp:30,spd:.6,reward:25,color:'#ff4d8a',boss:true},
+  b_worldeater:{name:'세계를 먹는 자',emoji:'🪐',hp:38,spd:.5,reward:30,color:'#c77dff',boss:true,noSlow:true},
 };
-const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken','b_yeti','b_golem','b_vampire','b_witch','b_titan','b_wraith','b_minotaur','b_cyclops','b_serpent','b_wolf','b_scorpion','b_spider','b_shark','b_lion','b_bull','b_rhino','b_elephant','b_gorilla','b_octopus','b_crab','b_snake','b_skull','b_zombie','b_genie','b_alien','b_robot','b_devil'];
+const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken','b_yeti','b_golem','b_vampire','b_witch','b_titan','b_wraith','b_minotaur','b_cyclops','b_serpent','b_wolf','b_scorpion','b_spider','b_shark','b_lion','b_bull','b_rhino','b_elephant','b_gorilla','b_octopus','b_crab','b_snake','b_skull','b_zombie','b_genie','b_alien','b_robot','b_devil','b_hydra','b_lich','b_chimera','b_behemoth','b_leviathan','b_basilisk','b_griffin','b_manticore','b_djinn','b_warlord','b_specter','b_juggernaut','b_overlord','b_void','b_inferno','b_frostking','b_stormlord','b_archfiend','b_worldeater'];
 
 /* ============================================================
    맵 / 상태
    ============================================================ */
 const DIFF={
-  normal:{label:'일반',lives:20,gold:150,hp:18,hpA:.18,hpB:.20,spd:1.12,spdA:.022,rwd:5,rwdA:.7},
-  hard:{label:'하드코어',lives:12,gold:130,hp:30,hpA:.30,hpB:.20,spd:1.45,spdA:.028,rwd:6,rwdA:.6},
+  normal:{label:'일반',lives:20,gold:160,hp:18,hpA:.18,hpB:.20,spd:1.12,spdA:.022,rwd:6,rwdA:.8},
+  hard:{label:'하드코어',lives:12,gold:150,hp:40,hpA:.38,hpB:.26,spd:1.62,spdA:.034,rwd:10,rwdA:1.1},
 };
 const GACHA_COST=55, GACHA10_COST=500;
 function gcost(base){ return Math.round(base*(1+Math.max(0,(state.wave||1)-1)*0.04)); } // 웨이브↑ → 모든 소비 비용↑ (골드 싱크)
@@ -605,12 +636,13 @@ function renderInventory(){ const box=$("inventory"); box.innerHTML="";
 }
 function updateSynBtn(){ const sel=[...state.selected].map(id=>state.inventory.find(t=>t.id===id)).filter(Boolean);
   const btn=$("btn-syn"),tip=$("inv-tip");
-  const pairOk=sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<5;
+  const pairOk=sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<6;
   if(pairOk){ const star=sel[0].star,cost=gcost(SYN_COST[star]),afford=state.gold>=cost;
     btn.disabled=!afford; btn.innerHTML=`⚒️ 타워 합성 <span class="small">(E)</span><br><span class="small">-${cost}G · 정답이면 성공!</span>`;
-    tip.textContent=!afford?`골드 부족 (${cost}G 필요)`:`${STAR_NAME[star]}+${STAR_NAME[star]} → ${STAR_NAME[star+1]} 도전!`;
+    const nextTxt = star+1===6 ? '🌟 6성(창세의 성좌) 도전!' : `${STAR_NAME[star]}+${STAR_NAME[star]} → ${STAR_NAME[star+1]} 도전!`;
+    tip.textContent=!afford?`골드 부족 (${cost}G 필요)`:nextTxt;
   } else { btn.disabled=true; btn.innerHTML=`⚒️ 타워 합성 <span class="small">(E)</span><br><span class="small">같은 등급 2개</span>`;
-    if(sel.length===2&&sel[0].star===5) tip.textContent="신화는 더 합성 불가!";
+    if(sel.length===2&&sel[0].star===6) tip.textContent="6성(초월)은 더 합성할 수 없어요!";
     else if(sel.length===2&&sel[0].star!==sel[1].star) tip.textContent="같은 등급 2개만 합성 가능";
     else tip.textContent=`같은 등급 2개 선택 → 합성 (정답이면 100% 성공!)`; } }
 function statLine(type,star){ const T=TYPES[type],st=effStats(type,star);
@@ -622,10 +654,10 @@ function statLine(type,star){ const T=TYPES[type],st=effStats(type,star);
   return ''; }
 function renderTowerInfo(){ const box=$("tower-info"); const s=state.selSlot;
   if(s&&s.tower){ const T=TYPES[s.tower.type],col=STAR_COLOR[s.tower.star],star=s.tower.star; box.classList.remove("hidden");
-    const canUpg=star<=3, upgCost=canUpg?gcost(UPG_COST[star]):0, afford=state.gold>=upgCost;
+    const canUpg=star<=4, upgCost=canUpg?gcost(UPG_COST[star]):0, afford=state.gold>=upgCost;
     const upgHtml=canUpg
       ? `<button class="btn btn-blue" id="ti-upg" style="width:100%;margin-top:8px;${afford?'':'filter:grayscale(.7) brightness(.65);'}">⬆️ 강화 ${STAR_NAME[star]}→${STAR_NAME[star+1]} <span class="small">(R · -${upgCost}G · 정답이면 성공!)</span></button>`
-      : `<div class="ti-stat" style="color:#ffd98a;margin-top:8px">⭐ 신화는 전설+전설 합성으로만 도달할 수 있어요.</div>`;
+      : `<div class="ti-stat" style="color:#ffd98a;margin-top:8px">🌟 6성(초월)은 신화+신화 합성으로만 얻을 수 있어요.</div>`;
     box.innerHTML=`<div class="ti-top"><span class="ti-em">${T.emoji}</span><div><div class="ti-name">${T.name} ${starStr(star,col)}</div><div class="ti-role" style="color:${ROLE_COLOR[T.role]}">${T.role} · ${STAR_NAME[star]}</div></div></div>
       <div class="ti-stat">${statLine(s.tower.type,star)}</div>
       <div class="ti-stat" style="color:#9fb3d9;line-height:1.5">${T.desc}</div>
@@ -648,8 +680,7 @@ function addTower(type,star){ state.inventory.push({id:++invId,type,star}); rend
 
 /* ---------- 퀴즈 ---------- */
 function startUpgrade(){ const s=state.selSlot; if(!s||!s.tower)return; if(paused())return; const star=s.tower.star;
-  if(star>3){ toast("신화는 전설+전설 합성으로만 가능해요"); return; }
-  if(state.gold<UPG_COST[star]){ toast("골드가 부족해요!"); return; }
+  if(star>4){ toast("6성(초월)은 신화+신화 합성으로만 가능해요"); return; }
   const cost=gcost(UPG_COST[star]); if(state.gold<cost){ toast("골드가 부족해요!"); return; }
   state.gold-=cost; updateHUD(); state._upgSlot=s; openQuiz("upgrade"); }
 function openQuiz(kind){ state.quizOpen=true; state.quizAnswered=false; state.pendingReward=null;
@@ -705,8 +736,8 @@ function answer(btn,chosen,correct,kind){ if(state.quizAnswered)return; state.qu
     const star=pair?pair.star:0;
     if(sel.length===2 && ok){ // 정답 → 100% 성공: 재료 2개 소모, +1등급
       state.inventory=state.inventory.filter(t=>!pair.ids.includes(t.id));
-      const type=pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1};
-      res.textContent=star+1>=5?"⭐ 신화 합성 성공!!":"🎉 합성 성공!"; res.className="quiz-result good";
+      const type=(star+1===6)?'celestial':pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1};
+      res.textContent=star+1===6?"🌟 6성 창세 합성 성공!!":(star+1>=5?"⭐ 신화 합성 성공!!":"🎉 합성 성공!"); res.className="quiz-result good";
       sub.textContent=`${STAR_NAME[star+1]} ${TYPES[type].name} ${TYPES[type].emoji} 로 진화!`;
     } else { // 오답 → 완화: 재료 1개만 소모
       if(sel.length>=1){ const lost=sel[0]; state.inventory=state.inventory.filter(t=>t.id!==lost.id); }
@@ -748,7 +779,7 @@ $("btn-sellsel").onclick=()=>{ if(paused())return; const ids=[...state.selected]
   toast(`💰 ${n}개 일괄 판매 (+${sum}G)`); renderInventory(); renderTowerInfo(); updateHUD(); updateSynBtn(); SFX.sell(); };
 $("btn-syn").onclick=()=>{ if(paused()||$("btn-syn").disabled)return;
   const sel=[...state.selected].map(id=>state.inventory.find(t=>t.id===id)).filter(Boolean);
-  if(!(sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<5))return;
+  if(!(sel.length===2&&sel[0].star===sel[1].star&&sel[0].star<6))return;
   const star=sel[0].star,cost=gcost(SYN_COST[star]); if(state.gold<cost){ toast("골드가 부족해요!"); return; }
   state.gold-=cost; updateHUD(); state._synPair={ids:sel.map(t=>t.id),star}; openQuiz("synthesis"); };
 $("btn-pause").onclick=()=>togglePause();
@@ -763,11 +794,19 @@ function spawnRing(x,y,col){ state.particles.push({x,y,ring:true,r:6,life:18,max
 function spawnFloat(x,y,txt,col){ state.floats.push({x,y,txt,col,life:46}); }
 
 /* ---------- 웨이브 구성 ---------- */
-function buildWave(w){ const list=[]; const n=6+Math.floor(w*1.7);
-  for(let i=0;i<n;i++){ const r=Math.random(); let t='grunt';
-    if(w>=2&&r<.18)t='runner'; else if(w>=4&&r<.32)t='tank'; else if(w>=3&&r<.50)t='swarm'; else if(w>=5&&r<.62)t='ghost'; else t='grunt';
-    list.push(t); }
-  if(w%5===0){ const bi=Math.floor(w/5)-1; list.push(BOSS_KEYS[bi%BOSS_KEYS.length]); if(w%10===0) list.push(BOSS_KEYS[(bi+6)%BOSS_KEYS.length]); }
+function buildWave(w){ const list=[]; const hard=state.diff==='hard'; const n=(hard?8:6)+Math.floor(w*(hard?2.1:1.7));
+  const roll=()=>{ const r=Math.random();
+    if(w>=12&&r<.10)return 'armored';
+    if(w>=9&&r<.20)return pk(['brute','golemling']);
+    if(w>=7&&r<.30)return pk(['shade','banshee']);
+    if(w>=6&&r<.40)return pk(['gargoyle','slimeking']);
+    if(w>=5&&r<.50)return pk(['ghost','wisp']);
+    if(w>=4&&r<.62)return pk(['tank','golemling']);
+    if(w>=3&&r<.74)return pk(['swarm','hornet']);
+    if(w>=2&&r<.86)return pk(['runner','speedy','mole']);
+    return 'grunt'; };
+  for(let i=0;i<n;i++)list.push(roll());
+  if(w%5===0){ const bi=Math.floor(w/5)-1; list.push(BOSS_KEYS[bi%BOSS_KEYS.length]); if(w%10===0) list.push(BOSS_KEYS[(bi+7)%BOSS_KEYS.length]); if(hard&&w%15===0) list.push(BOSS_KEYS[(bi+13)%BOSS_KEYS.length]); }
   return list;
 }
 function startWave(){ const b=$("wave-banner"); b.textContent="WAVE "+state.wave; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); SFX.wave();
@@ -777,10 +816,10 @@ function spawnMonster(type){ const cfg=DIFF[state.diff],w=state.wave,M=MTYPE[typ
   const midSpd=1+Math.max(0,w-7)*0.012;               // 중반부터 속도 가속
   const bossMul=M.boss?(1+Math.max(0,w-10)*0.06):1;   // 보스는 후반 추가 체력
   const waveHp=cfg.hp*(1+(w-1)*cfg.hpA+Math.max(0,w-5)*cfg.hpB)*midHp;
-  const waveSpd=Math.min(cfg.spd*(1+(w-1)*cfg.spdA)*midSpd, 4.6); // 속도 상한(프레임 스킵 방지)
+  const waveSpd=Math.min(cfg.spd*(1+(w-1)*cfg.spdA)*midSpd, state.diff==='hard'?5.4:4.4); // 속도 상한(프레임 스킵 방지)
   const waveRwd=cfg.rwd+Math.floor(w*cfg.rwdA);
   const hp=Math.round(waveHp*M.hp*bossMul);
-  state.monsters.push({type,d:0,hp,max:hp,spd:Math.min(waveSpd*M.spd,5),reward:Math.max(1,Math.round(waveRwd*M.reward)),slowT:0,slowAmt:1,stunT:0,vuln:1});
+  state.monsters.push({type,d:0,hp,max:hp,spd:Math.min(waveSpd*M.spd,state.diff==='hard'?5.8:5),reward:Math.max(1,Math.round(waveRwd*M.reward)),slowT:0,slowAmt:1,stunT:0,vuln:1});
   if(M.boss){ toast(`⚠️ 보스 출현: ${M.name} ${M.emoji}`); state.shake=Math.max(state.shake,9); SFX.boss(); } }
 
 /* ---------- 업데이트 ---------- */
@@ -850,7 +889,7 @@ function killMonster(m,p,fromSlot){ const idx=state.monsters.indexOf(m); if(idx<
 function rrect(x,y,w,h,r){ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath(); }
 function shadowEllipse(x,y,rx,ry){ ctx.save(); ctx.fillStyle="rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,7); ctx.fill(); ctx.restore(); }
 function poly(pts,fill,stroke,lw){ ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1.5;ctx.stroke();} }
-const SHAPE={knight:'keep',archer:'watch',lancer:'barracks',mage:'wizard',cannon:'cannon',frost:'crystal',thunder:'tesla',drummer:'banner',alchemist:'cauldron',vault:'vault',roulette:'wheel'};
+const SHAPE={knight:'keep',archer:'watch',lancer:'barracks',mage:'wizard',cannon:'cannon',frost:'crystal',thunder:'tesla',drummer:'banner',alchemist:'cauldron',vault:'vault',roulette:'wheel',celestial:'keep'};
 function drawTower(cx,cy,tw,now,alpha){
   const T=TYPES[tw.type],col=STAR_COLOR[tw.star],rc=ROLE_COLOR[T.role],s=tw.star,shape=SHAPE[tw.type];
   ctx.save(); ctx.globalAlpha=alpha; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineJoin="round"; ctx.lineCap="round";
@@ -944,6 +983,7 @@ function drawMonster(m,now){
     ctx.globalAlpha=.55;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(cx-rx*0.32,cy-ry*0.42,rx*0.32,ry*0.24,-0.5,0,7);ctx.fill();ctx.globalAlpha=1; };
   const eyes=(ey,r,spx)=>{ for(const sgn of[-1,1]){ const ex=cx+sgn*spx; ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(ex,ey,r,r*1.18,0,0,7);ctx.fill(); ctx.fillStyle="#16121f";ctx.beginPath();ctx.arc(ex+dir*r*0.4,ey+r*0.25,r*0.52,0,7);ctx.fill(); ctx.fillStyle="#fff";ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(ex+dir*r*0.2,ey-r*0.12,r*0.2,0,7);ctx.fill();ctx.globalAlpha=1; } };
 
+  const vis = M.draw || m.type;
   if(boss){
     ctx.save(); ctx.globalAlpha=.32+.18*Math.sin(now*5); const ag=ctx.createRadialGradient(cx,cy,sz*0.3,cx,cy,sz*0.95); ag.addColorStop(0,lum(col,1.4)); ag.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=ag; ctx.beginPath();ctx.arc(cx,cy,sz*0.95,0,7);ctx.fill(); ctx.restore();
     poly([sh(-13,-16),sh(-20,-30),sh(-6,-19)],lum(col,.7),"rgba(20,16,28,.5)",1.5);
@@ -954,29 +994,29 @@ function drawMonster(m,now){
     ctx.shadowBlur=0;ctx.fillStyle="#2a0d12";for(const sgn of[-1,1]){ctx.beginPath();ctx.arc(cx+sgn*7+dir*1.2,cy-2,1.7,0,7);ctx.fill();}
     ctx.strokeStyle="#2a0d12";ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy+8,6,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
     ctx.font="15px serif"; ctx.fillText(M.emoji,cx,cy-30);
-  } else if(m.type==='grunt'){
+  } else if(vis==='grunt'){
     poly([sh(-10,-7),sh(-15,-17),sh(-5,-11)],lum(col,.8),"rgba(20,16,28,.5)",1.2);
     poly([sh(10,-7),sh(15,-17),sh(5,-11)],lum(col,.8),"rgba(20,16,28,.5)",1.2);
     bodyOrb(12,11); eyes(cy-1,3,5);
     ctx.strokeStyle="#1a1018";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx-8,cy-6);ctx.lineTo(cx-3,cy-4);ctx.moveTo(cx+8,cy-6);ctx.lineTo(cx+3,cy-4);ctx.stroke();
     ctx.fillStyle="#fff";poly([sh(-3,6),sh(-1.5,9),sh(0,6)],"#fff");poly([sh(3,6),sh(1.5,9),sh(0,6)],"#fff");
-  } else if(m.type==='runner'){
+  } else if(vis==='runner'){
     const rx=12*(1+0.14*walk),ry=11*(1-0.14*walk); const g=ctx.createLinearGradient(cx,cy-ry,cx,cy+ry); g.addColorStop(0,lum(col,1.6));g.addColorStop(.6,col);g.addColorStop(1,lum(col,.6));
     ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,7);ctx.fill(); ctx.lineWidth=2;ctx.strokeStyle="rgba(20,40,40,.4)";ctx.stroke();
     ctx.globalAlpha=.6;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(cx-rx*0.3,cy-ry*0.4,rx*0.3,ry*0.22,-0.5,0,7);ctx.fill();ctx.globalAlpha=1;
     eyes(cy-1,3.2,4.5);
-  } else if(m.type==='tank'){
+  } else if(vis==='tank'){
     const g=ctx.createLinearGradient(cx,cy-12,cx,cy+12); g.addColorStop(0,lum(col,1.35));g.addColorStop(1,lum(col,.6));
     poly([sh(-13,-3),sh(-7,-12),sh(7,-12),sh(13,-3),sh(8,11),sh(-8,11)],g,"rgba(20,16,12,.6)",2);
     ctx.strokeStyle="rgba(30,22,14,.5)";ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-5,cy-10);ctx.lineTo(cx-2,cy+2);ctx.lineTo(cx-7,cy+9);ctx.moveTo(cx+6,cy-8);ctx.lineTo(cx+3,cy+4);ctx.stroke();
     eyes(cy-2,2.6,5);
-  } else if(m.type==='swarm'){
+  } else if(vis==='swarm'){
     const wa=Math.sin(now*16)*0.5; ctx.fillStyle=lum(col,.85);ctx.strokeStyle="rgba(20,16,28,.5)";ctx.lineWidth=1;
     for(const sgn of[-1,1]){ ctx.save();ctx.translate(cx,cy);ctx.rotate(sgn*(0.5+wa)); poly([[0,0],[sgn*16,-7],[sgn*13,2],[sgn*17,6]],lum(col,.9),"rgba(20,16,28,.4)",1); ctx.restore(); }
     bodyOrb(8,8);
     poly([sh(-5,-6),sh(-7,-12),sh(-2,-8)],lum(col,.7));poly([sh(5,-6),sh(7,-12),sh(2,-8)],lum(col,.7));
     eyes(cy-1,2,3);
-  } else if(m.type==='ghost'){
+  } else if(vis==='ghost'){
     ctx.globalAlpha=0.85; const g=ctx.createLinearGradient(cx,cy-13,cx,cy+12); g.addColorStop(0,"#ffffff");g.addColorStop(1,lum(col,.92));
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy-2,12,Math.PI,0); 
     let x=cx+12,yb=cy+10; ctx.lineTo(cx+12,cy+6); for(let i=0;i<4;i++){const xx=cx+12-i*8-4;ctx.quadraticCurveTo(xx,cy+(i%2?6:13),xx-4,cy+8);} ctx.lineTo(cx-12,cy-2); ctx.closePath();
