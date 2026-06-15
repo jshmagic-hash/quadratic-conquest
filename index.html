@@ -279,6 +279,7 @@ async function initFirebase(){ try{ if(!firebaseConfig.databaseURL) return;
   const A=await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js");
   const D=await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js");
   const app=A.initializeApp(firebaseConfig), db=D.getDatabase(app);
+  console.log("[Firebase] databaseURL =", firebaseConfig.databaseURL);
   FB={db,ref:D.ref,push:D.push,query:D.query,orderByChild:D.orderByChild,limitToLast:D.limitToLast,onValue:D.onValue};
 }catch(e){ FB=null; } }
 await initFirebase();
