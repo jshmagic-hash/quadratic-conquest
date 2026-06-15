@@ -173,13 +173,18 @@
         <div class="diff-card normal" data-diff="normal">
           <span class="badge n">EASY</span><h3>일반 모드</h3>
           <p style="color:#b9c8e6;font-size:13px;margin:6px 0 0">초반은 쉽게, 중반부터 점점 어려워집니다.</p>
-          <ul><li>문제 난이도: <b>하 ~ 중하</b> (평행이동·꼭짓점 등)</li><li>웨이브가 오를수록 문제·적이 강해짐</li><li>생명 20 · 시작 골드 150</li></ul>
+          <ul><li>문제 유형: <b>평행이동</b> (y=ax², y=ax²+q, y=a(x-p)²)</li><li>웨이브가 오를수록 문제·적이 강해짐</li><li>생명 20 · 시작 골드 150</li></ul>
         </div>
         <div class="diff-card hard" data-diff="hard">
           <span class="badge h">HARDCORE</span><h3>하드코어 모드</h3>
           <p style="color:#b9c8e6;font-size:13px;margin:6px 0 0">초반부터 빡세다. 고수만 살아남는다 💀</p>
-          <ul><li>문제 난이도: <b>중하 ~ 최상</b> (완전제곱·대칭 등)</li><li>몬스터가 더 강하고 빠름</li><li>생명 12 · 시작 골드 130</li></ul>
+          <ul><li>문제 유형: <b>대칭이동</b> (x축·y축 대칭, 난이도↑)</li><li>몬스터가 더 강하고 빠름</li><li>생명 12 · 시작 골드 130</li></ul>
         </div>
+      </div>
+      <div id="resume-box" class="hidden" style="margin:12px auto 0;max-width:520px;background:rgba(122,240,200,.12);border:1px solid rgba(122,240,200,.45);border-radius:14px;padding:12px 16px;">
+        <div style="color:#9fffce;font-family:'Jua';font-size:15px;">💾 이어서 진행할 수 있는 게임이 있어요!</div>
+        <div id="resume-info" style="color:#cfeede;font-size:13px;margin:4px 0 8px;"></div>
+        <button id="btn-resume-game" class="btn btn-gold" style="width:100%;">▶ 이어하기</button>
       </div>
       <button id="btn-back-login" class="btn btn-ghost">← 뒤로</button>
       <div class="subtitle" style="font-size:12px;color:#7f96bd;margin-top:-4px;">⌨️ Enter 키를 누르면 '일반 모드'로 바로 시작합니다</div>
@@ -366,28 +371,28 @@ function g_widthcmp(A){const vals=[1,-1,2,-2,3,-3];let a1=pk(vals),a2=pk(vals);w
   const f=x=>`y = ${x===1?'':x===-1?'-':x}x²`,ans=Math.abs(a1)>Math.abs(a2)?f(a1):f(a2),other=ans===f(a1)?f(a2):f(a1);
   const b=build(ans,[other,'폭이 서로 같다','알 수 없다'],null,ri(3,4));
   return{q:`두 이차함수 ${f(a1)} 와 ${f(a2)} 의 그래프 중 폭이 더 좁은 것은?`,...b,explain:"|a|가 클수록 폭이 좁아요."};}
-function g_incdec(A){const a=pk(A||DA),p=nz(-3,3),q=ri(-3,3),base=fq(a,p,q),askInc=Math.random()<.5;
+function g_incdec(A){const a=pk(A||DA),p=nz(-3,3),base=fq(a,p,0),askInc=Math.random()<.5;
   const incSide=a>0?'right':'left',side=askInc?incSide:(incSide==='right'?'left':'right');
   const ans=side==='right'?`x > ${p}`:`x < ${p}`,verb=askInc?'증가':'감소';
-  const cands=[side==='right'?`x < ${p}`:`x > ${p}`,`x > ${-p}`,`x < ${-p}`,`x > ${q}`,`x < ${q}`];
+  const cands=[side==='right'?`x < ${p}`:`x > ${p}`,`x > ${-p}`,`x < ${-p}`,`x > 0`,`x < 0`];
   const b=build(ans,cands,()=>`x ${Math.random()<.5?'>':'<'} ${nz(-4,4)}`,ri(3,5));
   return{q:`${base} 의 그래프에서 x의 값이 증가할 때 y의 값이 ${verb}하는 x의 값의 범위는?`,...b,explain:"꼭짓점 x=p를 경계로, 볼록 방향에 따라 증가·감소 구간이 나뉘어요."};}
-function g_onpoint(A){const a=pk(A||DA2),p=nz(-3,3),q=ri(-3,3),base=fq(a,p,q),x0=p+pk([-2,-1,1,2]),y0=a*(x0-p)*(x0-p)+q,ans=`(${x0}, ${y0})`;
-  const cands=[`(${x0}, ${y0+1})`,`(${x0}, ${y0-1})`,`(${x0+1}, ${y0})`,`(${p}, ${q+1})`]; if(y0!==0)cands.push(`(${x0}, ${-y0})`);
+function g_onpoint(A){const a=pk(A||DA2),form=pk(['ax2','ax2q','axp2']);let p=0,q=0;if(form==='ax2q')q=nz(-3,3);else if(form==='axp2')p=nz(-3,3);const base=fq(a,p,q),x0=p+pk([-2,-1,1,2]),y0=a*(x0-p)*(x0-p)+q,ans=`(${x0}, ${y0})`;
+  const cands=[`(${x0}, ${y0+1})`,`(${x0}, ${y0-1})`,`(${x0+1}, ${y0})`]; if(y0!==0)cands.push(`(${x0}, ${-y0})`);
   const b=build(ans,cands.filter(c=>c!==ans),()=>`(${x0}, ${y0+nz(-3,3)})`,ri(3,5));
   return{q:`${base} 의 그래프 위에 있는 점은?`,...b,explain:"점의 x좌표를 식에 대입해 y좌표가 일치하는지 확인해요."};}
 function g_vertex(form,A){const a=pk(A||DA);let p=0,q=0,base; if(form==="ax2")base=fq(a,0,0); else if(form==="ax2q"){q=nz(-4,4);base=fq(a,0,q);} else if(form==="axp2"){p=nz(-4,4);base=fq(a,p,0);} else{p=nz(-4,4);q=nz(-4,4);base=fq(a,p,q);} const ans=pt(p,q); const b=build(ans,[pt(-p,q),pt(p,-q),pt(-p,-q),pt(q,p),pt(p+1,q),pt(p,q+1)],()=>pt(p+nz(-3,3),q+nz(-3,3))); return{q:`${base} 의 그래프의 꼭짓점의 좌표는?`,...b,explain:"y=a(x-p)²+q 의 꼭짓점은 (p, q)."};}
-function g_axis(A){const a=pk(A||DA2),p=nz(-4,4),q=ri(-3,3),base=fq(a,p,q),ans=`x = ${p}`;
+function g_axis(A){const a=pk(A||DA2),p=nz(-4,4),base=fq(a,p,0),ans=`x = ${p}`;
   const used=new Set(['V:'+p]),cand=[]; // 정답(수직선 x=p) 의미 선점, 의미 중복 금지
   const addV=(k,d)=>{ if(!used.has('V:'+k)){used.add('V:'+k);cand.push(d);} };
   const addH=(m,d)=>{ if(!used.has('H:'+m)){used.add('H:'+m);cand.push(d);} };
   addV(0, Math.random()<.5?'y축':'x = 0');       // y축 = x=0
   addH(0, Math.random()<.5?'x축':'y = 0');       // x축 = y=0
-  addV(-p, `x = ${-p}`); addH(p, `y = ${p}`); addV(q, `x = ${q}`); addH(q, `y = ${q}`);
+  addV(-p, `x = ${-p}`); addH(p, `y = ${p}`); addV(p+1, `x = ${p+1}`); addH(-p, `y = ${-p}`);
   const b=build(ans,sh(cand),null,ri(3,5));
   return{q:`${base} 의 그래프의 축의 방정식은?`,...b,explain:"꼭짓점의 x좌표 p를 지나는 세로선 x = p 가 축. (x축=y=0, y축=x=0)"};}
 function g_xsym(A){const a=pk([1,-1,2,-2,3,-3]),base=fq(a,0,0),ans=fq(-a,0,0); const b=build(ans,[fq(a,0,0),fq(-a,0,2),fq(a,0,2),fq(-a,1,0)],()=>fq(-a,nz(-3,3),0)); return{q:`${base} 의 그래프와 x축에 대하여 대칭인 그래프의 식은?`,...b,explain:"x축 대칭 → a의 부호만 반대."};}
-function g_vertexToEq(A){const a=pk(A||DA),p=nz(-4,4),q=nz(-4,4),coef=a===1?"":a===-1?"-":a,ans=fq(a,p,q); const b=build(ans,[fq(a,-p,q),fq(a,p,-q),fq(a,-p,-q),fq(a,q,p)],()=>fq(a,nz(-5,5),nz(-5,5))); return{q:`y=${coef}x² 의 그래프를 평행이동하여 꼭짓점이 ${pt(p,q)} 가 되게 하는 식은?`,...b,explain:"꼭짓점 (p,q) → y=a(x-p)²+q."};}
+function g_vertexToEq(A){const a=pk(A||DA),coef=a===1?"":a===-1?"-":a,onX=Math.random()<.5;let p=0,q=0;if(onX)p=nz(-4,4);else q=nz(-4,4);const ans=fq(a,p,q),vtx=pt(p,q);const cands=[fq(a,-p,q),fq(a,p,-q),fq(-a,p,q),fq(a,q,p)].filter(s=>s!==ans);const b=build(ans,cands,()=>fq(a,onX?nz(-5,5):0,onX?0:nz(-5,5)),ri(3,5));return{q:`y=${coef}x² 의 그래프를 평행이동하여 꼭짓점이 ${vtx} 가 되게 하는 식은?`,...b,explain:"꼭짓점이 (p, 0)이면 y=a(x-p)², (0, q)이면 y=ax²+q."};}
 function g_yint(A){const a=pk(A||DA2),p=nz(-3,3),q=nz(-4,4),c=a*p*p+q,base=fq(a,p,q),ans=String(c); const b=build(ans,[String(q),String(a*p*p),String(-c),String(a*p*p-q)],()=>String(c+nz(-4,4))); const phrase=Math.random()<.5?"y축과 만나는 점의 y좌표는?":"y절편은?"; return{q:`${base} 의 그래프에서 ${phrase}`,...b,explain:"x=0을 대입 → 그 값이 y절편 (a·p²+q)."};}
 function g_xint(A){const a=pk([1,-1,2,-2]);let r1=ri(-4,4),r2=ri(-4,4);while(r2===r1)r2=ri(-4,4);
   const lo=Math.min(r1,r2),hi=Math.max(r1,r2),b=-a*(r1+r2),c=a*r1*r2,gen=fgen(a,b,c);
@@ -398,42 +403,39 @@ function g_xint(A){const a=pk([1,-1,2,-2]);let r1=ri(-4,4),r2=ri(-4,4);while(r2=
   const phrase=Math.random()<.5?"x축과 만나는 점의 x좌표를 모두 구하면?":"x절편을 모두 구하면?";
   return{q:`${gen} 의 그래프에서 ${phrase}`,...bb,explain:"y=0을 대입해 인수분해: a(x-r₁)(x-r₂)=0 → x절편은 r₁, r₂."};}
 function g_complete(A){const a=pk(A||DA2),p=nz(-3,3),q=ri(-4,4),bb=-2*a*p,c=a*p*p+q,gen=fgen(a,bb,c),ans=pt(p,q); const b=build(ans,[pt(-p,q),pt(p,-q),pt(-p,-q),pt(bb,c),pt(p,q+1)],()=>pt(p+nz(-2,2),q+nz(-2,2))); return{q:`${gen} 를 완전제곱식으로 고쳤을 때, 그래프의 꼭짓점의 좌표는?`,...b,explain:"y=a(x-p)²+q 꼴로 변형 → (p, q)."};}
-/* ===== 대칭이동 (하드코어 주제): x축 y=-f(x) / y축 y=f(-x) ===== */
-function g_symXeq(A,full){const a=pk(A||DA),p=full?nz(-3,3):0,q=nz(-4,4),base=fq(a,p,q),ans=fq(-a,p,-q);
-  const b=build(ans,[fq(a,p,-q),fq(-a,p,q),fq(a,p,q),fq(-a,-p,-q)],()=>fq(-a,p,-q+nz(-2,2)),ri(3,5));
-  return{q:`${base} 의 그래프를 x축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"x축 대칭 y=-f(x): a와 상수항의 부호가 모두 반대. 꼭짓점 (p, q)→(p, -q)."};}
-function g_symYeq(A,full){const a=pk(A||DA),p=nz(-3,3),q=full?ri(-4,4):0,base=fq(a,p,q),ans=fq(a,-p,q);
-  const b=build(ans,[fq(-a,p,q),fq(a,p,-q),fq(a,p,q),fq(-a,-p,q)],()=>fq(a,-p,q+nz(-2,2)),ri(3,5));
-  return{q:`${base} 의 그래프를 y축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"y축 대칭 y=f(-x): (x-p)가 (x+p)로, p의 부호가 반대. 꼭짓점 (p, q)→(-p, q)."};}
-function g_symVertex(A){const a=pk(A||DA),p=nz(-3,3),q=nz(-3,3),xaxis=Math.random()<.5,base=fq(a,p,q),ans=xaxis?pt(p,-q):pt(-p,q);
-  const b=build(ans,[pt(p,q),pt(-p,-q),xaxis?pt(-p,q):pt(p,-q),pt(q,p)],()=>pt(nz(-3,3),nz(-3,3)),ri(3,5));
-  return{q:`${base} 의 그래프를 ${xaxis?'x축':'y축'}에 대하여 대칭이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:xaxis?"x축 대칭: (p, q)→(p, -q).":"y축 대칭: (p, q)→(-p, q)."};}
-function g_symAxis(A){const a=pk(A||DA),p=nz(-3,4),q=ri(-3,3),base=fq(a,p,q),ans=`x = ${-p}`;
-  const b=build(ans,[`x = ${p}`,`y = ${-p}`,`x = ${-q}`,`x = 0`],()=>`x = ${nz(-4,4)}`,ri(3,5));
+/* ===== 대칭이동 (세 형태 한정, 중3 범위): x축 y=-f(x) / y축 y=f(-x) ===== */
+function g_symXeq(A,hard){const a=pk(A||DA),form=hard?pk(['axp2','ax2q']):'ax2q';let p=0,q=0;if(form==='axp2')p=nz(-3,3);else if(form==='ax2q')q=nz(-4,4);const base=fq(a,p,q),ans=fq(-a,p,-q);
+  const cands=[fq(a,p,-q),fq(-a,p,q),fq(a,p,q),fq(-a,-p,-q)].filter(s=>s!==ans);
+  const b=build(ans,cands,()=>fq(-a,p,q===0?0:(-q+nz(-2,2))),ri(3,5));
+  return{q:`${base} 의 그래프를 x축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"x축 대칭 y=-f(x): a와 상수항(q)의 부호가 모두 반대."};}
+function g_symYeq(A,hard){const a=pk(A||DA),p=nz(-3,3),base=fq(a,p,0),ans=fq(a,-p,0);
+  const cands=[fq(-a,p,0),fq(a,p,0),fq(-a,-p,0)].filter(s=>s!==ans);
+  const b=build(ans,cands,()=>fq(a,nz(-3,3),0),ri(3,4));
+  return{q:`${base} 의 그래프를 y축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"y축 대칭 y=f(-x): (x-p)가 (x+p)로, p의 부호가 반대."};}
+function g_symVertex(A){const a=pk(A||DA),xaxis=Math.random()<.5;let base,ans,c1,c2,c3;
+  if(xaxis){const q=nz(-3,3);base=fq(a,0,q);ans=pt(0,-q);c1=pt(0,q);c2=pt(q,0);c3=pt(0,-q+1);}      // y=ax²+q, 꼭짓점 (0,q)→(0,-q)
+  else{const p=nz(-3,3);base=fq(a,p,0);ans=pt(-p,0);c1=pt(p,0);c2=pt(0,p);c3=pt(0,-p);}             // y=a(x-p)², 꼭짓점 (p,0)→(-p,0)
+  const b=build(ans,[c1,c2,c3].filter(s=>s!==ans),()=>pt(nz(-3,3),nz(-3,3)),ri(3,5));
+  return{q:`${base} 의 그래프를 ${xaxis?'x축':'y축'}에 대하여 대칭이동한 그래프의 꼭짓점의 좌표는?`,...b,explain:xaxis?"x축 대칭: (0, q)→(0, -q).":"y축 대칭: (p, 0)→(-p, 0)."};}
+function g_symAxis(A){const a=pk(A||DA),p=nz(-3,4),base=fq(a,p,0),ans=`x = ${-p}`;
+  const b=build(ans,[`x = ${p}`,`x = 0`,`y = ${-p}`,`x = ${p+1}`],()=>`x = ${nz(-4,4)}`,ri(3,5));
   return{q:`${base} 의 그래프를 y축에 대하여 대칭이동한 그래프의 축의 방정식은?`,...b,explain:"y축 대칭 → 축 x=p 가 x=-p 로 바뀜."};}
-function g_symGen(A,xaxis){const a=pk(A||DA2),b1=nz(-4,4),c=ri(-4,4),base=fgen(a,b1,c),ans=xaxis?fgen(-a,-b1,-c):fgen(a,-b1,c);
-  const cands=[fgen(-a,b1,c),fgen(a,b1,-c),fgen(-a,-b1,c),fgen(a,-b1,-c),fgen(-a,b1,-c)].filter(x=>x!==ans);
-  const bb=build(ans,cands,()=>fgen(a,nz(-4,4),ri(-4,4)),ri(3,5));
-  return{q:`${base} 의 그래프를 ${xaxis?'x축':'y축'}에 대하여 대칭이동한 그래프의 식은?`,...bb,explain:xaxis?"x축 대칭 y=-f(x): 모든 항의 부호가 반대.":"y축 대칭 y=f(-x): 일차항(x의 홀수차) 부호만 반대."};}
-function g_symBoth(A){const a=pk(A||DA),p=nz(-3,3),q=nz(-3,3),base=fq(a,p,q),ans=fq(-a,-p,-q);
-  const b=build(ans,[fq(-a,p,-q),fq(-a,-p,q),fq(a,-p,-q),fq(a,p,q)],()=>fq(-a,nz(-3,3),nz(-3,3)),ri(3,5));
-  return{q:`${base} 의 그래프를 x축에 대하여 대칭이동한 뒤, 다시 y축에 대하여 대칭이동한 그래프의 식은?`,...b,explain:"x축·y축 연속 대칭 = 원점 대칭: a, p, q 모두 부호 반대."};}
-function g_symWhich(A){const a=pk(A||DA),p=nz(-2,3),q=nz(-3,3),base=fq(a,p,q),xaxis=Math.random()<.5,res=xaxis?fq(-a,p,-q):fq(a,-p,q),ans=xaxis?'x축':'y축';
+function g_symWhich(A){const a=pk(A||DA),p=nz(-2,3),base=fq(a,p,0),xaxis=Math.random()<.5,res=xaxis?fq(-a,p,0):fq(a,-p,0),ans=xaxis?'x축':'y축';
   const b=build(ans,['x축','y축','원점'],null,3);
-  return{q:`${base} 의 그래프를 어떤 직선에 대하여 대칭이동했더니 ${res} 가 되었다. 무엇에 대한 대칭인가?`,...b,explain:"a·상수항이 바뀌면 x축, (x-p)의 부호만 바뀌면 y축 대칭."};}
+  return{q:`${base} 의 그래프를 어떤 직선/점에 대하여 대칭이동했더니 ${res} 가 되었다. 무엇에 대한 대칭인가?`,...b,explain:"a의 부호만 바뀌면 x축, (x-p)의 부호만 바뀌면 y축 대칭."};}
 
-// 하드코어: 전부 대칭이동, 등급이 오를수록 어려운 형태
+// 하드코어: 전부 대칭이동(세 형태 한정), 등급↑ → 사고력형 비중↑
 const TIER_GEN={
   '중하':[A=>g_symXeq(A,false),A=>g_symYeq(A,false),A=>g_symVertex(A)],
   '중':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symVertex(A),A=>g_symAxis(A)],
-  '중상':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symAxis(A),A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symWhich(A)],
-  '상':[A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symBoth(A),A=>g_symWhich(A),A=>g_symAxis(A)],
-  '최상':[A=>g_symGen(A,true),A=>g_symGen(A,false),A=>g_symBoth(A),A=>g_symWhich(A)],
+  '중상':[A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symAxis(A),A=>g_symWhich(A),A=>g_symVertex(A)],
+  '상':[A=>g_symWhich(A),A=>g_symAxis(A),A=>g_symXeq(A,true),A=>g_symYeq(A,true),A=>g_symVertex(A)],
+  '최상':[A=>g_symWhich(A),A=>g_symAxis(A),A=>g_symXeq(A,true),A=>g_symYeq(A,true)],
 };
 // 일반 모드: 평행이동 반복 연습(정수만). '하' 기본, '중하' 약간 심화.
 const NORMAL_EARLY=[A=>g_transX(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A)];
 const NORMAL_EASY=[A=>g_transX(A),A=>g_transX(A),A=>g_transY(A),A=>g_transY(A),A=>g_transXvertex(A),A=>g_transYvertex(A),A=>g_transXrev(A),A=>g_transYrev(A)];
-const NORMAL_JUNGHA=[A=>g_transX(A),A=>g_transY(A),A=>g_transBoth(A),A=>g_transXrev(A),A=>g_transYrev(A),A=>g_vertex('axp2',A),A=>g_vertex('ax2q',A)];
+const NORMAL_JUNGHA=[A=>g_transX(A),A=>g_transY(A),A=>g_transXrev(A),A=>g_transYrev(A),A=>g_vertex('axp2',A),A=>g_vertex('ax2q',A),A=>g_axis(A),A=>g_onpoint(A)];
 function pickTierHard(wave){ if(wave<=2)return '중하'; if(wave<=4)return '중'; if(wave<=6)return '중상'; if(wave<=8)return '상'; return '최상'; }
 function makeProblem(mode,wave,forceHard){
   if(forceHard){ // 10연차
@@ -453,7 +455,7 @@ function gradedProblem(mode,star){
 }
 // 문제 난이도(티어) → 보상 강화: 어려운 문제일수록 높은 등급 확률↑. 일반 모드는 보상 보정(+2단계).
 const TIER_RANK={'하':0,'중하':1,'중':2,'중상':3,'상':4,'최상':5};
-function gachaStar(tier,mode){ const t=Math.min(5,(TIER_RANK[tier]||0)+(mode==="normal"?2:0)),r=Math.random(),p4=0.02+t*0.02,p3=0.22+t*0.05; if(r<p4)return 4; if(r<p4+p3)return 3; return 2; }
+function gachaStar(tier,mode){ const t=Math.min(5,(TIER_RANK[tier]||0)+(mode==="normal"?2:0)),r=Math.random(),p4=0.015+t*0.03,p3=0.18+t*0.06; if(r<p4)return 4; if(r<p4+p3)return 3; return 2; }
 
 /* ============================================================
    타워 / 몬스터 정의 (개성 + 4역할 체계)
@@ -751,7 +753,7 @@ $("btn-syn").onclick=()=>{ if(paused()||$("btn-syn").disabled)return;
   state.gold-=cost; updateHUD(); state._synPair={ids:sel.map(t=>t.id),star}; openQuiz("synthesis"); };
 $("btn-pause").onclick=()=>togglePause();
 $("btn-resume").onclick=()=>togglePause();
-function togglePause(){ if(state.screen!=="game"||state.quizOpen||state.celebrating)return; state.manualPause=!state.manualPause; $("pause-overlay").classList.toggle("hidden",!state.manualPause); }
+function togglePause(){ if(state.screen!=="game"||state.quizOpen||state.celebrating)return; state.manualPause=!state.manualPause; $("pause-overlay").classList.toggle("hidden",!state.manualPause); if(state.manualPause)saveGame(); }
 
 /* ---------- 파티클 / 플로팅 텍스트 ---------- */
 function spawnHit(x,y,col){ for(let i=0;i<6;i++){const a=Math.random()*6.28,s=1+Math.random()*2.5;state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:14,max:14,size:2+Math.random()*2,col,g:0});} }
@@ -769,7 +771,7 @@ function buildWave(w){ const list=[]; const n=6+Math.floor(w*1.7);
   return list;
 }
 function startWave(){ const b=$("wave-banner"); b.textContent="WAVE "+state.wave; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); SFX.wave();
-  state.spawn.queue=buildWave(state.wave); state.spawn.idx=0; state.spawn.cd=20; }
+  state.spawn.queue=buildWave(state.wave); state.spawn.idx=0; state.spawn.cd=20; saveGame(); }
 function spawnMonster(type){ const cfg=DIFF[state.diff],w=state.wave,M=MTYPE[type];
   const midHp=1+Math.max(0,w-7)*0.10;                 // 중반(8웨이브)부터 체력 가속
   const midSpd=1+Math.max(0,w-7)*0.012;               // 중반부터 속도 가속
@@ -1062,17 +1064,47 @@ function renderBoard(list){ const box=$("lb-list"); box.innerHTML="";
   const s=(list||[]).filter(r=>r&&(r.name!=null)).slice().sort((a,b)=>sc(b)-sc(a)).slice(0,5);
   if(!s.length){ box.innerHTML='<div class="lb-mode">아직 기록이 없어요. 1등이 되어보세요!</div>'; return; }
   s.forEach((r,i)=>{ const md=["🥇","🥈","🥉"][i]||`${i+1}.`; const row=document.createElement("div"); row.className="lb-row"; row.innerHTML=`<span class="rk">${md}</span><span class="nm">${escapeHtml(r.name)}</span><span class="wv">${sc(r)}점·${wv(r)}W</span>`; box.appendChild(row); }); }
-function subscribeBoard(diff){ $("lb-mode").textContent=`(${DIFF[diff].label})`; if(state.lbUnsub){state.lbUnsub();state.lbUnsub=null;}
-  if(FB){ const r=FB.ref(FB.db,"scores/"+diff); state.lbUnsub=FB.onValue(r,snap=>{const a=[];snap.forEach(c=>a.push(c.val()));console.log(`[명예의전당:${diff}] 서버에서 받은 기록 수:`,a.length); renderBoard(a);},err=>{console.warn("[명예의전당] 읽기 실패:",err&&err.code,err&&err.message);}); }
-  else renderBoard(localScores[diff]); }
+function fetchBoard(diff){
+  if(!firebaseConfig.databaseURL){ renderBoard(localScores[diff]); return; }
+  fetch(firebaseConfig.databaseURL.replace(/\/$/,"")+"/scores/"+diff+".json")
+    .then(r=>r.json())
+    .then(obj=>{ const a=obj?Object.values(obj):[]; renderBoard(a.length?a:localScores[diff]); })
+    .catch(e=>{ console.warn("[명예의전당] 조회 실패:",e); renderBoard(localScores[diff]); });
+}
+function subscribeBoard(diff){ $("lb-mode").textContent=`(${DIFF[diff].label})`; state._lbDiff=diff;
+  if(state.lbTimer)clearInterval(state.lbTimer);
+  fetchBoard(diff);
+  state.lbTimer=setInterval(()=>fetchBoard(diff),5000); }
 function submitScore(diff,e){ localScores[diff]=localScores[diff]||[];
-  if(FB){ try{ const p=FB.push(FB.ref(FB.db,"scores/"+diff),e);
-      if(p&&p.then){ p.then(()=>{}).catch(err=>{ console.warn("score write failed:",err&&err.code,err&&err.message); localScores[diff].push(e); toast("⚠️ 온라인 점수 등록 실패 — DB 규칙/네트워크 확인"); }); }
-    }catch(err){ console.warn("score push error:",err); localScores[diff].push(e); toast("⚠️ 점수 등록 오류"); }
+  if(firebaseConfig.databaseURL){
+    fetch(firebaseConfig.databaseURL.replace(/\/$/,"")+"/scores/"+diff+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)})
+      .then(r=>{ if(!r.ok)throw new Error("HTTP "+r.status); return r.json(); })
+      .then(()=>{ if(state._lbDiff===diff)fetchBoard(diff); })
+      .catch(err=>{ console.warn("[점수 등록] 실패:",err); localScores[diff].push(e); toast("⚠️ 온라인 점수 등록 실패 — DB 규칙/네트워크 확인"); });
   } else { localScores[diff].push(e); renderBoard(localScores[diff]); toast("📴 오프라인 모드 — 점수가 이 기기에만 저장돼요"); } }
 
-/* ---------- 전환 ---------- */
-$("btn-login").onclick=()=>{ audioInit(); const sid=$("in-sid").value.trim(),nm=$("in-name").value.trim(); if(!sid||!nm){ toast("학번과 이름을 모두 입력해 주세요"); return; } state.sid=sid; state.name=nm; $("diff-greet").textContent=`${nm} 도전자여, 어느 전장으로?`; show("diff"); };
+/* ---------- 이어하기 (Firebase 계정별 저장, REST) ---------- */
+function saveURL(sid){ return firebaseConfig.databaseURL.replace(/\/$/,"")+"/saves/"+encodeURIComponent(sid)+".json"; }
+function saveGame(){ if(!firebaseConfig.databaseURL||!state.sid) return; if(state.screen!=="game"||state._ended) return;
+  const data={ sid:state.sid,name:state.name,diff:state.diff,wave:state.wave,gold:state.gold,lives:state.lives,kills:state.kills,
+    inv:state.inventory.map(t=>({t:t.type,s:t.star})), slots:SLOTS.map(s=>s.tower?{t:s.tower.type,s:s.tower.star}:null), ts:Date.now() };
+  fetch(saveURL(state.sid),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).catch(e=>console.warn("[저장] 실패:",e)); }
+function clearSave(){ if(!firebaseConfig.databaseURL||!state.sid) return; fetch(saveURL(state.sid),{method:"DELETE"}).catch(()=>{}); }
+function loadSave(sid){ if(!firebaseConfig.databaseURL) return Promise.resolve(null); return fetch(saveURL(sid)).then(r=>r.json()).catch(()=>null); }
+function applySave(d){ state.diff=DIFF[d.diff]?d.diff:'normal'; const cfg=DIFF[state.diff];
+  Object.assign(state,{ lives:d.lives,gold:d.gold,wave:d.wave||1,kills:d.kills||0,monsters:[],projectiles:[],particles:[],floats:[],inventory:[],selected:new Set(),selSlot:null,infoInv:null,manualPause:false,quizOpen:false,quizAnswered:false,pendingReward:null,_synPair:null,_upgSlot:null,celebrating:false,shake:0,drag:null });
+  state.spawn={queue:[],idx:0,cd:0,between:140}; state._ended=false;
+  SLOTS.forEach((s,i)=>{ const t=d.slots&&d.slots[i]; s.tower= t?{type:t.t,star:t.s}:null; });
+  state.inventory=(d.inv||[]).map(o=>({id:++invId,type:o.t,star:o.s}));
+  $("mode-tag").textContent=cfg.label; $("mode-tag").className="badge "+(state.diff==="hard"?"h":"n"); $("who-tag").textContent=`${state.sid} ${state.name}`;
+  $("quiz").classList.add("hidden"); $("pause-overlay").classList.add("hidden");
+  updateHUD(); renderInventory(); renderTowerInfo(); updateSynBtn(); subscribeBoard(state.diff); show("game");
+  startWave(); const b=$("wave-banner"); b.textContent=`WAVE ${state.wave} 이어서!`; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); }
+$("btn-login").onclick=()=>{ audioInit(); const sid=$("in-sid").value.trim(),nm=$("in-name").value.trim(); if(!sid||!nm){ toast("학번과 이름을 모두 입력해 주세요"); return; } state.sid=sid; state.name=nm; $("diff-greet").textContent=`${nm} 도전자여, 어느 전장으로?`; show("diff");
+  state._resume=null; $("resume-box").classList.add("hidden");
+  loadSave(sid).then(d=>{ if(d&&d.wave){ state._resume=d; $("resume-info").textContent=`${DIFF[d.diff]?DIFF[d.diff].label:d.diff} · 웨이브 ${d.wave} · 골드 ${d.gold} · 생명 ${d.lives}`; $("resume-box").classList.remove("hidden"); } }); };
+$("btn-resume-game")&&($("btn-resume-game").onclick=()=>{ if(state._resume){ audioInit(); applySave(state._resume); } });
+window.addEventListener("beforeunload",()=>{ try{ if(state.screen==="game"&&!state._ended)saveGame(); }catch(e){} });
 $("btn-back-login").onclick=()=>show("login");
 document.querySelectorAll(".diff-card").forEach(c=>c.onclick=()=>{ audioInit(); state.diff=c.dataset.diff; startGame(); });
 $("btn-retry").onclick=()=>{ audioInit(); startGame(); };
@@ -1088,7 +1120,7 @@ function startGame(){ const cfg=DIFF[state.diff];
   updateHUD(); renderInventory(); renderTowerInfo(); subscribeBoard(state.diff); show("game");
   const b=$("wave-banner"); b.textContent="GAME START!"; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show");
 }
-function endGame(reason){ if(state._ended)return; state._ended=true; const score=calcScore();
+function endGame(reason){ if(state._ended)return; state._ended=true; clearSave(); const score=calcScore();
   submitScore(state.diff,{name:`${state.sid} ${state.name}`,wave:state.wave,score,ts:Date.now()});
   $("over-wave").textContent=state.wave;
   $("over-title")&&($("over-title").textContent=reason==='giveup'?"GAVE UP":"GAME OVER");
