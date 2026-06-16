@@ -217,8 +217,8 @@
           <button id="btn-syn" class="btn btn-blue" disabled>⚒️ 타워 합성<br><span class="small">같은 등급 2개</span></button>
         </div>
         <button id="btn-gacha10" class="btn btn-gold" style="width:100%;background:linear-gradient(180deg,#ffd27a,#ff9d3d);box-shadow:0 5px 0 #c9701f;">🎁×10 한방 뽑기 <span class="small">(W)</span><br><span class="small" id="lbl-gacha10">고난도 문제 1개 → 정답 시 타워 10개 · -500 G</span></button>
-        <button id="btn-nuke" class="btn btn-red" style="width:100%;margin-top:6px;">☄️ 융합 포격<br><span class="small" id="lbl-nuke">화면의 모든 적에게 데미지 · -320 G</span></button>
-        <div class="inv-head"><h4>🏰 타워 대기실</h4><button id="btn-sellsel" class="btn btn-ghost" style="padding:3px 10px;font-size:12px;">선택 일괄 판매</button></div>
+        <div class="inv-head"><h4>🏰 타워 대기실</h4></div>
+        <button id="btn-sellsel" class="btn btn-red" style="width:100%;margin:2px 0 4px;padding:9px;font-size:14px;">🗑️ 선택한 타워 일괄 판매</button>
         <span class="tip" id="inv-tip" style="display:block;margin:-2px 0 4px;">1개 선택 → 빈자리 탭</span>
         <div class="inventory" id="inventory"></div>
         <div class="tower-info hidden" id="tower-info"></div>
@@ -473,8 +473,13 @@ const TYPES={
   alchemist:{name:'독 연금술사',emoji:'☠️',role:'서포터',sub:'받는 피해 증가·중독',kind:'debuff',range:116,desc:'사거리 안의 적이 받는 피해를 늘리고 서서히 중독 피해를 줍니다. 물리 딜러의 추가타 조건을 만들어줍니다.'},
   vault:{name:'황금 금고',emoji:'🏦',role:'유틸리티',sub:'골드 이자',kind:'vault',range:70,desc:'공격하지 않습니다. 일정 시간마다 골드를 자동으로 벌어줍니다. 초반에 깔아두면 후반 경제가 든든해집니다.'},
   roulette:{name:'행운의 룰렛',emoji:'🎰',role:'유틸리티',sub:'처치 보너스 골드',kind:'roll',range:150,desc:'사거리 안에서 적을 처치하면 확률적으로 보너스 골드를 줍니다. 길목 한가운데에 두면 효율이 좋아요.'},
-  celestial:{name:'창세의 성좌',emoji:'🌟',role:'마법딜러',sub:'초월 광역 강타',kind:'attack',dmg:46,range:175,cd:30,proj:'orb',splash:72,physBonus:true,desc:'⭐ 신화+신화 합성으로만 얻는 6성 전용 타워. 압도적인 광역 피해로 보스 무리를 쓸어버립니다.'},
+  celestial:{name:'창세의 성좌',emoji:'🌟',role:'마법딜러',sub:'초월 광역 강타',kind:'attack',dmg:46,range:175,cd:30,proj:'orb',splash:74,physBonus:true,desc:'⭐ 6성 전용. 광범위한 적을 한 번에 쓸어버리는 광역 초월 마법.'},
+  seraph:{name:'심판의 세라핌',emoji:'😇',role:'물리딜러',sub:'초고속 단일 강타',kind:'attack',dmg:34,range:158,cd:18,proj:'slash',physBonus:true,desc:'⭐ 6성 전용. 한 대상에게 무시무시한 속도로 폭딜을 퍼붓는 단일 처형자. 보스 학살에 최적.'},
+  ragnarok:{name:'라그나로크 포대',emoji:'🛰️',role:'마법딜러',sub:'초강력 폭격',kind:'attack',dmg:62,range:138,cd:52,proj:'bomb',splash:96,desc:'⭐ 6성 전용. 느리지만 한 발 한 발이 재앙급. 단단한 보스 무리를 통째로 날립니다.'},
+  worldtree:{name:'세계수',emoji:'🌳',role:'서포터',sub:'주변 타워 초강화',kind:'buff',range:140,desc:'⭐ 6성 전용. 사거리 안 모든 공격 타워의 공격력·공격속도를 압도적으로 끌어올립니다.'},
+  abyss:{name:'심연의 군주',emoji:'🕳️',role:'서포터',sub:'받는 피해 대폭 증가·맹독',kind:'debuff',range:138,desc:'⭐ 6성 전용. 사거리 안 적이 받는 피해를 크게 늘리고 강력한 중독을 겁니다. 딜러와 함께 두면 보스도 순삭.'},
 };
+const CELESTIAL_TYPES=['celestial','seraph','ragnarok','worldtree','abyss'];
 const GACHA_WEIGHT={ knight:14,archer:12,lancer:10,mage:12,cannon:8,frost:9,thunder:8,drummer:7,alchemist:6,vault:4,roulette:4 };
 function weightedType(){ let tot=0; for(const k in GACHA_WEIGHT)tot+=GACHA_WEIGHT[k]; let r=Math.random()*tot; for(const k in GACHA_WEIGHT){ r-=GACHA_WEIGHT[k]; if(r<=0)return k; } return 'knight'; }
 
@@ -577,8 +582,6 @@ const DIFF={
 };
 const GACHA_COST=55, GACHA10_COST=500;
 function gcost(base){ return Math.round(base*(1+Math.max(0,(state.wave||1)-1)*0.04)); } // 웨이브↑ → 모든 소비 비용↑ (골드 싱크)
-const NUKE_BASE=320;
-function nukeCost(){ return Math.round(NUKE_BASE*(1+Math.max(0,(state.wave||1)-1)*0.12)); } // 메테오: 후반일수록 비싸지는 소비처
 const PATH=[{x:-40,y:90},{x:632,y:90},{x:632,y:220},{x:90,y:220},{x:90,y:350},{x:760,y:350}];
 const SEG=[]; let PATH_LEN=0;
 for(let i=0;i<PATH.length-1;i++){const a=PATH[i],b=PATH[i+1],d=Math.hypot(b.x-a.x,b.y-a.y);SEG.push({a,b,len:d,acc:PATH_LEN});PATH_LEN+=d;}
@@ -736,7 +739,7 @@ function answer(btn,chosen,correct,kind){ if(state.quizAnswered)return; state.qu
     const star=pair?pair.star:0;
     if(sel.length===2 && ok){ // 정답 → 100% 성공: 재료 2개 소모, +1등급
       state.inventory=state.inventory.filter(t=>!pair.ids.includes(t.id));
-      const type=(star+1===6)?'celestial':pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1};
+      const type=(star+1===6)?pk(CELESTIAL_TYPES):pk([sel[0].type,sel[1].type]); addTower(type,star+1); reward={type,star:star+1};
       res.textContent=star+1===6?"🌟 6성 창세 합성 성공!!":(star+1>=5?"⭐ 신화 합성 성공!!":"🎉 합성 성공!"); res.className="quiz-result good";
       sub.textContent=`${STAR_NAME[star+1]} ${TYPES[type].name} ${TYPES[type].emoji} 로 진화!`;
     } else { // 오답 → 완화: 재료 1개만 소모
@@ -769,10 +772,6 @@ function celebrate(rw){ state.celebrating=true; const T=TYPES[rw.type],col=STAR_
 /* ---------- 버튼 ---------- */
 $("btn-gacha").onclick=()=>{ if(paused())return; const c=gcost(GACHA_COST); if(state.gold<c){ toast("골드가 부족해요! 몬스터를 더 잡으세요 💰"); return; } state.gold-=c; updateHUD(); openQuiz("gacha"); };
 $("btn-gacha10").onclick=()=>{ if(paused())return; const c=gcost(GACHA10_COST); if(state.gold<c){ toast(`골드가 부족해요! (${c}G 필요)`); return; } state.gold-=c; updateHUD(); openQuiz("gacha10"); };
-$("btn-nuke").onclick=()=>{ if(paused())return; const c=nukeCost(); if(state.gold<c){ toast(`골드가 부족해요! (${c}G 필요)`); return; } if(!state.monsters.length){ toast("처치할 적이 없어요"); return; }
-  state.gold-=c; updateHUD(); SFX.bomb(); state.shake=Math.max(state.shake,16);
-  const arr=state.monsters.slice(); for(const m of arr){ const p=pointAt(m.d); m.hp-=m.max*0.45; spawnBoom(p.x,p.y); if(m.hp<=0)killMonster(m,p); }
-  toast("☄️ 융합 포격! 전체 데미지"); };
 $("btn-sellsel").onclick=()=>{ if(paused())return; const ids=[...state.selected]; if(!ids.length){ toast("판매할 타워를 먼저 선택하세요"); return; }
   let sum=0,n=0; for(const id of ids){ const t=state.inventory.find(x=>x.id===id); if(t){ sum+=sellPrice(t.star); n++; } }
   state.inventory=state.inventory.filter(t=>!state.selected.has(t.id)); state.selected.clear(); state.infoInv=null; state.gold+=sum;
@@ -794,7 +793,7 @@ function spawnRing(x,y,col){ state.particles.push({x,y,ring:true,r:6,life:18,max
 function spawnFloat(x,y,txt,col){ state.floats.push({x,y,txt,col,life:46}); }
 
 /* ---------- 웨이브 구성 ---------- */
-function buildWave(w){ const list=[]; const hard=state.diff==='hard'; const n=(hard?8:6)+Math.floor(w*(hard?2.1:1.7));
+function buildWave(w){ const list=[]; const hard=state.diff==='hard'; const HELL=15;
   const roll=()=>{ const r=Math.random();
     if(w>=12&&r<.10)return 'armored';
     if(w>=9&&r<.20)return pk(['brute','golemling']);
@@ -805,16 +804,24 @@ function buildWave(w){ const list=[]; const hard=state.diff==='hard'; const n=(h
     if(w>=3&&r<.74)return pk(['swarm','hornet']);
     if(w>=2&&r<.86)return pk(['runner','speedy','mole']);
     return 'grunt'; };
+  if(w>=HELL){ // 🔥 무한 보스 지옥: 보스 위주 + 소수 잡몹
+    const bossN=2+Math.floor((w-HELL)/2)+(hard?1:0);
+    for(let i=0;i<bossN;i++){ const bi=(w*3+i*5)%BOSS_KEYS.length; list.push(BOSS_KEYS[bi]); }
+    const mobN=3+(hard?2:0);
+    for(let i=0;i<mobN;i++)list.push(roll());
+    return list;
+  }
+  const n=(hard?8:6)+Math.floor(w*(hard?2.1:1.7));
   for(let i=0;i<n;i++)list.push(roll());
-  if(w%5===0){ const bi=Math.floor(w/5)-1; list.push(BOSS_KEYS[bi%BOSS_KEYS.length]); if(w%10===0) list.push(BOSS_KEYS[(bi+7)%BOSS_KEYS.length]); if(hard&&w%15===0) list.push(BOSS_KEYS[(bi+13)%BOSS_KEYS.length]); }
+  if(w%5===0){ const bi=Math.floor(w/5)-1; list.push(BOSS_KEYS[bi%BOSS_KEYS.length]); if(w%10===0) list.push(BOSS_KEYS[(bi+7)%BOSS_KEYS.length]); }
   return list;
 }
-function startWave(){ const b=$("wave-banner"); b.textContent="WAVE "+state.wave; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); SFX.wave();
+function startWave(){ const b=$("wave-banner"); const hell=state.wave>=15; b.textContent= hell?`WAVE ${state.wave} · 👹 보스 지옥`:("WAVE "+state.wave); b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); SFX.wave(); if(state.wave===15)toast("👹 무한 보스 지옥 진입! 강력한 보스가 끝없이 몰려옵니다!");
   state.spawn.queue=buildWave(state.wave); state.spawn.idx=0; state.spawn.cd=20; saveGame(); }
 function spawnMonster(type){ const cfg=DIFF[state.diff],w=state.wave,M=MTYPE[type];
   const midHp=1+Math.max(0,w-7)*0.10;                 // 중반(8웨이브)부터 체력 가속
   const midSpd=1+Math.max(0,w-7)*0.012;               // 중반부터 속도 가속
-  const bossMul=M.boss?(1+Math.max(0,w-10)*0.06):1;   // 보스는 후반 추가 체력
+  const bossMul=M.boss?(1+Math.max(0,w-10)*0.06+Math.max(0,w-15)*0.14):1;   // 보스는 후반 추가 체력, 지옥(15+)부터 급증
   const waveHp=cfg.hp*(1+(w-1)*cfg.hpA+Math.max(0,w-5)*cfg.hpB)*midHp;
   const waveSpd=Math.min(cfg.spd*(1+(w-1)*cfg.spdA)*midSpd, state.diff==='hard'?5.4:4.4); // 속도 상한(프레임 스킵 방지)
   const waveRwd=cfg.rwd+Math.floor(w*cfg.rwdA);
@@ -889,7 +896,7 @@ function killMonster(m,p,fromSlot){ const idx=state.monsters.indexOf(m); if(idx<
 function rrect(x,y,w,h,r){ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath(); }
 function shadowEllipse(x,y,rx,ry){ ctx.save(); ctx.fillStyle="rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,7); ctx.fill(); ctx.restore(); }
 function poly(pts,fill,stroke,lw){ ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1.5;ctx.stroke();} }
-const SHAPE={knight:'keep',archer:'watch',lancer:'barracks',mage:'wizard',cannon:'cannon',frost:'crystal',thunder:'tesla',drummer:'banner',alchemist:'cauldron',vault:'vault',roulette:'wheel',celestial:'keep'};
+const SHAPE={knight:'keep',archer:'watch',lancer:'barracks',mage:'wizard',cannon:'cannon',frost:'crystal',thunder:'tesla',drummer:'banner',alchemist:'cauldron',vault:'vault',roulette:'wheel',celestial:'keep',seraph:'watch',ragnarok:'cannon',worldtree:'banner',abyss:'cauldron'};
 function drawTower(cx,cy,tw,now,alpha){
   const T=TYPES[tw.type],col=STAR_COLOR[tw.star],rc=ROLE_COLOR[T.role],s=tw.star,shape=SHAPE[tw.type];
   ctx.save(); ctx.globalAlpha=alpha; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineJoin="round"; ctx.lineCap="round";
@@ -1086,11 +1093,10 @@ function pstroke(){ ctx.beginPath(); ctx.moveTo(PATH[0].x,PATH[0].y); for(let i=
 /* ---------- HUD / 루프 ---------- */
 function calcScore(){ return Math.max(0,(state.wave-1))*100 + state.kills*5; }
 function updateHUD(){ $("hud-wave").textContent=state.wave; $("hud-life").textContent=Math.max(0,state.lives); $("hud-gold").textContent=state.gold;
-  const cg=gcost(GACHA_COST),cg10=gcost(GACHA10_COST),cn=nukeCost();
-  $("btn-gacha").disabled=state.gold<cg; $("btn-gacha10").disabled=state.gold<cg10; { const nb=$("btn-nuke"); if(nb)nb.disabled=state.gold<cn; }
+  const cg=gcost(GACHA_COST),cg10=gcost(GACHA10_COST);
+  $("btn-gacha").disabled=state.gold<cg; $("btn-gacha10").disabled=state.gold<cg10;
   { const l=$("lbl-gacha"); if(l)l.textContent=`타워 1개 뽑기 · -${cg} G`; }
   { const l=$("lbl-gacha10"); if(l)l.textContent=`고난도 문제 1개 → 정답 시 타워 10개 · -${cg10} G`; }
-  { const l=$("lbl-nuke"); if(l)l.textContent=`화면의 모든 적에게 데미지 · -${cn} G`; }
   $("score-tag").textContent=`🏅 점수 ${calcScore()} · ${state.wave}W · ${state.kills}킬`;
   if(typeof updateSynBtn==="function")updateSynBtn(); }
 let lastT=0;
