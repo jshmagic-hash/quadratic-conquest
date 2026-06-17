@@ -788,7 +788,7 @@ function togglePause(){ if(state.screen!=="game"||state.quizOpen||state.celebrat
 /* ---------- 파티클 / 플로팅 텍스트 ---------- */
 function spawnHit(x,y,col){ for(let i=0;i<6;i++){const a=Math.random()*6.28,s=1+Math.random()*2.5;state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:14,max:14,size:2+Math.random()*2,col,g:0});} }
 function spawnKill(x,y,col){ for(let i=0;i<14;i++){const a=Math.random()*6.28,s=1.5+Math.random()*3.5;state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:24,max:24,size:2+Math.random()*3,col,g:.12});} }
-function spawnBoom(x,y){ for(let i=0;i<26;i++){const a=Math.random()*6.28,s=2+Math.random()*5;state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:30,max:30,size:3+Math.random()*4,col:pk(["#ffd34d","#ff7a4d","#fff"]),g:.05});} }
+function spawnBoom(x,y){ const N=LOWFX?7:14; for(let i=0;i<N;i++){const a=Math.random()*6.28,s=2+Math.random()*5;state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:30,max:30,size:3+Math.random()*4,col:pk(["#ffd34d","#ff7a4d","#fff"]),g:.05});} }
 function spawnRing(x,y,col){ state.particles.push({x,y,ring:true,r:6,life:18,max:18,col}); }
 function spawnFloat(x,y,txt,col){ state.floats.push({x,y,txt,col,life:46}); }
 
@@ -821,7 +821,8 @@ function startWave(){ const b=$("wave-banner"); const hell=state.wave>=15; b.tex
 function spawnMonster(type){ const cfg=DIFF[state.diff],w=state.wave,M=MTYPE[type];
   const midHp=1+Math.max(0,w-7)*0.10;                 // 중반(8웨이브)부터 체력 가속
   const midSpd=1+Math.max(0,w-7)*0.012;               // 중반부터 속도 가속
-  const bossMul=M.boss?(1+Math.max(0,w-10)*0.06+Math.max(0,w-15)*0.14):1;   // 보스는 후반 추가 체력, 지옥(15+)부터 급증
+  const hellK=state.diff==='hard'?0.14:0.08;
+  const bossMul=M.boss?(1+Math.max(0,w-10)*0.06+Math.max(0,w-15)*hellK):1;   // 보스 후반 추가 체력, 지옥(15+) 급증(난이도별)
   const waveHp=cfg.hp*(1+(w-1)*cfg.hpA+Math.max(0,w-5)*cfg.hpB)*midHp;
   const waveSpd=Math.min(cfg.spd*(1+(w-1)*cfg.spdA)*midSpd, state.diff==='hard'?5.4:4.4); // 속도 상한(프레임 스킵 방지)
   const waveRwd=cfg.rwd+Math.floor(w*cfg.rwdA);
@@ -837,9 +838,9 @@ function update(dt){
   else if(state.monsters.length===0){ state.wave++; updateHUD(); sp.between=130; }
 
   // 디버프/이코노미 오라
-  for(const m of state.monsters){ m.vuln=1; }
+  for(const m of state.monsters){ const p=pointAt(m.d); m._px=p.x; m._py=p.y; m.vuln=1; }
   for(const s of SLOTS){ const tw=s.tower; if(!tw)continue; const T=TYPES[tw.type],st=effStats(tw.type,tw.star);
-    if(T.kind==='debuff'){ for(const m of state.monsters){ const p=pointAt(m.d); if(Math.hypot(p.x-s.x,p.y-s.y)<=st.range){ m.vuln=Math.max(m.vuln,st.vuln); m.hp-=st.dot*dt*0.12; if(m.hp<=0){ killMonster(m,p,s); } } } }
+    if(T.kind==='debuff'){ for(const m of state.monsters){ if(Math.hypot(m._px-s.x,m._py-s.y)<=st.range){ m.vuln=Math.max(m.vuln,st.vuln); m.hp-=st.dot*dt*0.12; if(m.hp<=0){ killMonster(m,{x:m._px,y:m._py},s); } } } }
     if(T.kind==='vault'){ tw.gtimer-=dt; if(tw.gtimer<=0){ tw.gtimer=st.goldEvery; state.gold+=st.goldAmt; spawnFloat(s.x,s.y-8,`+${st.goldAmt}G`,"#ffd34d"); SFX.gold(); updateHUD(); } }
   }
 
@@ -850,45 +851,48 @@ function update(dt){
     if(m.d>=PATH_LEN){ state.monsters.splice(i,1); state.lives-=MTYPE[m.type].boss?5:1; updateHUD(); state.shake=Math.max(state.shake,MTYPE[m.type].boss?12:5); SFX.lose(); if(state.lives<=0){ gameOver(); return; } } }
 
   // 공격 타워
+  for(const m of state.monsters){ const p=pointAt(m.d); m._px=p.x; m._py=p.y; }  // 이동 후 좌표 갱신
   for(const s of SLOTS){ const tw=s.tower; if(!tw)continue; const T=TYPES[tw.type]; if(T.kind!=='attack')continue;
     let st=effStats(tw.type,tw.star);
     // 버프 적용
     let bd=1,bc=1; for(const o of SLOTS){ if(o.tower&&TYPES[o.tower.type].kind==='buff'){ const os=effStats(o.tower.type,o.tower.star); if(Math.hypot(o.x-s.x,o.y-s.y)<=os.range){ bd=Math.max(bd,os.buffDmg); bc=Math.min(bc,os.buffCd); } } }
     if(tw.flash>0)tw.flash-=dt;
     tw.t-=dt;
-    if(tw.t<=0){ let tgt=null,bestD=-1; for(const m of state.monsters){ const p=pointAt(m.d); if(Math.hypot(p.x-s.x,p.y-s.y)<=st.range&&m.d>bestD){bestD=m.d;tgt=m;} }
+    if(tw.t<=0){ let tgt=null,bestD=-1; for(const m of state.monsters){ if(Math.hypot(m._px-s.x,m._py-s.y)<=st.range&&m.d>bestD){bestD=m.d;tgt=m;} }
       if(tgt){ state.projectiles.push({x:s.x,y:s.y,tgt,dmg:st.dmg*bd,splash:st.splash,proj:T.proj,star:tw.star,phys:T.physBonus,
           slow:st.slow,slowDur:st.slowDur,stun:T.stun,stunChance:st.stunChance,stunDur:st.stunDur,col:ROLE_COLOR[T.role]});
         tw.t=Math.max(6,st.cd*bc); tw.flash=7; const fx={slash:SFX.shoot,arrow:SFX.arrow,pierce:SFX.shoot,orb:SFX.magic,bomb:SFX.bomb,ice:SFX.ice,spark:SFX.spark}[T.proj]; fx&&fx(); } }
   }
 
   // 투사체
+  state._f=(state._f||0)+1;
   for(let i=state.projectiles.length-1;i>=0;i--){ const pr=state.projectiles[i];
     if(!state.monsters.includes(pr.tgt)){ state.projectiles.splice(i,1); continue; }
-    const tp=pointAt(pr.tgt.d),ang=Math.atan2(tp.y-pr.y,tp.x-pr.x),spd=13*dt; pr.x+=Math.cos(ang)*spd; pr.y+=Math.sin(ang)*spd;
-    if(pr.star>=3)state.particles.push({x:pr.x,y:pr.y,vx:0,vy:0,life:8,max:8,size:pr.star,col:pr.col,g:0});
-    if(Math.hypot(tp.x-pr.x,tp.y-pr.y)<14){ applyHit(pr,tp); state.projectiles.splice(i,1); } }
+    const txp=pr.tgt._px,typ=pr.tgt._py,ang=Math.atan2(typ-pr.y,txp-pr.x),spd=13*dt; pr.x+=Math.cos(ang)*spd; pr.y+=Math.sin(ang)*spd;
+    if(pr.star>=4&&!LOWFX&&(state._f&1))state.particles.push({x:pr.x,y:pr.y,vx:0,vy:0,life:8,max:8,size:pr.star,col:pr.col,g:0});
+    if(Math.hypot(txp-pr.x,typ-pr.y)<14){ applyHit(pr,{x:txp,y:typ}); state.projectiles.splice(i,1); } }
 
   // 파티클
   for(let i=state.particles.length-1;i>=0;i--){ const p=state.particles[i]; p.life-=dt;
     if(p.ring){ p.r+=2.2*dt; } else { p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=(p.g||0)*dt; }
     if(p.life<=0)state.particles.splice(i,1); }
+  if(state.particles.length>300)state.particles.splice(0,state.particles.length-300);
   for(let i=state.floats.length-1;i>=0;i--){ const f=state.floats[i]; f.y-=0.5*dt; f.life-=dt; if(f.life<=0)state.floats.splice(i,1); }
   if(state.shake>0)state.shake=Math.max(0,state.shake-0.8*dt);
 }
 function applyHit(pr,tp){
   const hitOne=(m)=>{ let dmg=pr.dmg*m.vuln; if(pr.phys&&m.vuln>1)dmg*=1.5; m.hp-=dmg;
-    if(pr.slow){ m.slowT=pr.slowDur; m.slowAmt=pr.slow; } if(pr.stun&&Math.random()<pr.stunChance){ m.stunT=pr.stunDur; spawnFloat(pointAt(m.d).x,pointAt(m.d).y-14,"기절!","#3fd0ff"); } };
-  if(pr.splash>0){ for(const m of state.monsters){ const p=pointAt(m.d); if(Math.hypot(p.x-tp.x,p.y-tp.y)<=pr.splash) hitOne(m); } spawnBoom(tp.x,tp.y); state.shake=Math.max(state.shake,pr.star>=4?7:3); }
+    if(pr.slow){ m.slowT=pr.slowDur; m.slowAmt=pr.slow; } if(pr.stun&&Math.random()<pr.stunChance){ m.stunT=pr.stunDur; spawnFloat(m._px,m._py-14,"기절!","#3fd0ff"); } };
+  if(pr.splash>0){ for(const m of state.monsters){ if(Math.hypot(m._px-tp.x,m._py-tp.y)<=pr.splash) hitOne(m); } spawnBoom(tp.x,tp.y); state.shake=Math.max(state.shake,pr.star>=4?7:3); }
   else { hitOne(pr.tgt); spawnHit(tp.x,tp.y,pr.col); }
   SFX.hit();
-  for(let i=state.monsters.length-1;i>=0;i--){ const m=state.monsters[i]; if(m.hp<=0){ killMonster(m,pointAt(m.d)); } }
+  for(let i=state.monsters.length-1;i>=0;i--){ const m=state.monsters[i]; if(m.hp<=0){ killMonster(m,{x:m._px,y:m._py}); } }
 }
 function killMonster(m,p,fromSlot){ const idx=state.monsters.indexOf(m); if(idx<0)return; state.monsters.splice(idx,1);
   let gold=m.reward;
   for(const s of SLOTS){ if(s.tower&&TYPES[s.tower.type].kind==='roll'){ const st=effStats(s.tower.type,s.tower.star); if(Math.hypot(s.x-p.x,s.y-p.y)<=st.range&&Math.random()<st.luckChance){ gold+=st.luckAmt; spawnFloat(p.x,p.y-18,`행운 +${st.luckAmt}`,"#ffd34d"); } } }
   state.gold+=gold; state.kills++; spawnFloat(p.x,p.y,`+${gold}`,"#9fffce");
-  if(MTYPE[m.type].boss){ spawnBoom(p.x,p.y); spawnBoom(p.x+20,p.y); state.shake=14; SFX.boss(); } else { spawnKill(p.x,p.y,MTYPE[m.type].color); SFX.kill(); }
+  if(MTYPE[m.type].boss){ spawnBoom(p.x,p.y); state.shake=14; SFX.boss(); } else { spawnKill(p.x,p.y,MTYPE[m.type].color); SFX.kill(); }
   updateHUD();
 }
 
@@ -928,7 +932,7 @@ function drawTower(cx,cy,tw,now,alpha){
     poly([[cx-12,topY],[cx+12,topY],[cx,topY-26]],"#6a3fb0","#3a2070",1.5);
     ctx.fillStyle=col; for(let i=0;i<2;i++){ctx.beginPath();ctx.arc(cx+(i?2:-2),topY-6-i*8,1.6,0,7);ctx.fill();}
     const og=ctx.createRadialGradient(cx,topY-27,1,cx,topY-27,6); og.addColorStop(0,"#fff");og.addColorStop(1,rc);
-    ctx.save();ctx.fillStyle=og;ctx.shadowColor=rc;ctx.shadowBlur=10+4*Math.sin(now*4);ctx.beginPath();ctx.arc(cx,topY-27,4.5,0,7);ctx.fill();ctx.restore(); topMark=topY-34;
+    ctx.save();ctx.fillStyle=og;if(!LOWFX){ctx.shadowColor=rc;ctx.shadowBlur=10+4*Math.sin(now*4);}ctx.beginPath();ctx.arc(cx,topY-27,4.5,0,7);ctx.fill();ctx.restore(); topMark=topY-34;
   } else if(shape==='cannon'){ poly([[cx-16,baseY],[cx+16,baseY],[cx+13,topY+5],[cx-13,topY+5]],stone,rc,2);
     ctx.fillStyle="#3a4150"; ctx.beginPath();ctx.arc(cx,topY+5,12,Math.PI,0);ctx.fill(); ctx.strokeStyle=rc;ctx.lineWidth=2;ctx.stroke();
     ctx.save();ctx.translate(cx,topY+1);ctx.rotate(-0.6); const bgrad=ctx.createLinearGradient(0,-6,0,6);bgrad.addColorStop(0,"#5a616f");bgrad.addColorStop(1,"#272c36");
@@ -976,7 +980,8 @@ function drawTower(cx,cy,tw,now,alpha){
   ctx.restore();
 }
 function drawMonster(m,now){
-  const p=pointAt(m.d),M=MTYPE[m.type],boss=!!M.boss,col=M.color;
+  const M=MTYPE[m.type],boss=!!M.boss,col=M.color;
+  const p={x:(m._px!=null?m._px:pointAt(m.d).x), y:(m._py!=null?m._py:pointAt(m.d).y)};
   const ahead=pointAt(Math.min(PATH_LEN,m.d+3)),dir=ahead.x>=p.x?1:-1;
   const sz=boss?42:24, walk=Math.sin(m.d*0.35+(boss?now*2:0)), bob=Math.abs(walk)*(boss?2:2.4), lean=walk*0.06*dir;
   const cx=p.x, cy=p.y-bob;
@@ -992,11 +997,11 @@ function drawMonster(m,now){
 
   const vis = M.draw || m.type;
   if(boss){
-    ctx.save(); ctx.globalAlpha=.32+.18*Math.sin(now*5); const ag=ctx.createRadialGradient(cx,cy,sz*0.3,cx,cy,sz*0.95); ag.addColorStop(0,lum(col,1.4)); ag.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=ag; ctx.beginPath();ctx.arc(cx,cy,sz*0.95,0,7);ctx.fill(); ctx.restore();
+    if(!LOWFX){ ctx.save(); ctx.globalAlpha=.32+.18*Math.sin(now*5); const ag=ctx.createRadialGradient(cx,cy,sz*0.3,cx,cy,sz*0.95); ag.addColorStop(0,lum(col,1.4)); ag.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=ag; ctx.beginPath();ctx.arc(cx,cy,sz*0.95,0,7);ctx.fill(); ctx.restore(); }
     poly([sh(-13,-16),sh(-20,-30),sh(-6,-19)],lum(col,.7),"rgba(20,16,28,.5)",1.5);
     poly([sh(13,-16),sh(20,-30),sh(6,-19)],lum(col,.7),"rgba(20,16,28,.5)",1.5);
     bodyOrb(20,18);
-    ctx.fillStyle=lum(col,1.7);ctx.shadowColor=lum(col,1.8);ctx.shadowBlur=8;
+    ctx.fillStyle=lum(col,1.7);if(!LOWFX){ctx.shadowColor=lum(col,1.8);ctx.shadowBlur=8;}
     for(const sgn of[-1,1]){ctx.beginPath();ctx.ellipse(cx+sgn*7,cy-3,3.4,4.2,0,0,7);ctx.fill();}
     ctx.shadowBlur=0;ctx.fillStyle="#2a0d12";for(const sgn of[-1,1]){ctx.beginPath();ctx.arc(cx+sgn*7+dir*1.2,cy-2,1.7,0,7);ctx.fill();}
     ctx.strokeStyle="#2a0d12";ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy+8,6,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
@@ -1038,29 +1043,28 @@ function drawMonster(m,now){
   if(m.stunT>0){ ctx.font="14px serif"; ctx.fillText("💫",cx+sz*0.5,cy-sz*0.5); }
   ctx.restore();
 }
+let BG=null, LOWFX=false;
+function buildBG(){ const c=document.createElement('canvas'); c.width=720; c.height=480; const g=c.getContext('2d');
+  g.textAlign="center"; g.textBaseline="middle"; g.lineCap="round"; g.lineJoin="round";
+  const gg=g.createRadialGradient(360,120,80,360,300,560); gg.addColorStop(0,"#6fc35d"); gg.addColorStop(1,"#3f8f3c"); g.fillStyle=gg; g.fillRect(-20,-20,760,520);
+  g.globalAlpha=.35; for(const t of TUFTS){ g.font=(t.r<.5?10:13)+"px serif"; g.fillText(t.r<.33?"˅":(t.r<.66?"🌿":"🌱"),t.x,t.y); } g.globalAlpha=1;
+  const ps=()=>{ g.beginPath(); g.moveTo(PATH[0].x,PATH[0].y); for(let i=1;i<PATH.length;i++)g.lineTo(PATH[i].x,PATH[i].y); g.stroke(); };
+  g.strokeStyle="rgba(0,0,0,.18)"; g.lineWidth=58; g.save(); g.translate(0,4); ps(); g.restore();
+  g.strokeStyle="#5c3b1c"; g.lineWidth=54; ps(); g.strokeStyle="#8a5a2c"; g.lineWidth=46; ps(); g.strokeStyle="#a06f38"; g.lineWidth=34; ps();
+  g.fillStyle="rgba(60,38,18,.5)"; for(const t of TUFTS){ if(t.r>.7){const pp=nearestOnPath(t.x,t.y); if(pp.dist<18){g.beginPath();g.arc(t.x,t.y,1.6,0,7);g.fill();}} }
+  g.strokeStyle="rgba(255,240,200,.22)"; g.lineWidth=3; g.setLineDash([8,18]); ps(); g.setLineDash([]);
+  for(const d of DECOR){ g.save();g.fillStyle="rgba(0,0,0,.22)";g.beginPath();g.ellipse(d.x,d.y+d.s*0.36,d.s*0.34,d.s*0.14,0,0,7);g.fill();g.restore(); g.font=d.s+"px serif"; g.fillText(d.e,d.x,d.y); }
+  const end=PATH[PATH.length-1],st0=PATH[0];
+  g.fillStyle="#7a6bff"; g.globalAlpha=.5; g.beginPath();g.arc(st0.x+34,st0.y,20,0,7);g.fill(); g.globalAlpha=1; g.font="34px serif"; g.fillText("🌀",st0.x+34,st0.y);
+  g.save();g.fillStyle="rgba(0,0,0,.22)";g.beginPath();g.ellipse(end.x-26,end.y+20,30,10,0,0,7);g.fill();g.restore(); g.font="46px serif"; g.fillText("🏰",end.x-26,end.y-2);
+  BG=c;
+}
 function draw(){ ctx.setTransform(1,0,0,1,0,0);
   if(state.shake>0){ ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake); }
   const now=performance.now()/1000;
-  // 잔디 (라이트 그라데이션 + 텍스처)
-  const gg=ctx.createRadialGradient(360,120,80,360,300,560); gg.addColorStop(0,"#6fc35d"); gg.addColorStop(1,"#3f8f3c");
-  ctx.fillStyle=gg; ctx.fillRect(-20,-20,760,520);
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.globalAlpha=.35; for(const t of TUFTS){ ctx.font=(t.r<.5?10:13)+"px serif"; ctx.fillText(t.r<.33?"˅":(t.r<.66?"🌿":"🌱"),t.x,t.y); } ctx.globalAlpha=1;
-  // 길 (그림자 → 외곽 → 흙 → 밝은 중앙 → 점선)
-  ctx.lineCap="round"; ctx.lineJoin="round";
-  ctx.strokeStyle="rgba(0,0,0,.18)"; ctx.lineWidth=58; ctx.save(); ctx.translate(0,4); pstroke(); ctx.restore();
-  ctx.strokeStyle="#5c3b1c"; ctx.lineWidth=54; pstroke();
-  ctx.strokeStyle="#8a5a2c"; ctx.lineWidth=46; pstroke();
-  ctx.strokeStyle="#a06f38"; ctx.lineWidth=34; pstroke();
-  ctx.fillStyle="rgba(60,38,18,.5)"; for(const t of TUFTS){ if(t.r>.7){const pp=nearestOnPath(t.x,t.y); if(pp.dist<18){ctx.beginPath();ctx.arc(t.x,t.y,1.6,0,7);ctx.fill();}} }
-  ctx.strokeStyle="rgba(255,240,200,.22)"; ctx.lineWidth=3; ctx.setLineDash([8,18]); pstroke(); ctx.setLineDash([]);
-  // 장식물
-  for(const d of DECOR){ shadowEllipse(d.x,d.y+d.s*0.36,d.s*0.34,d.s*0.14); ctx.font=d.s+"px serif"; ctx.fillText(d.e,d.x,d.y); }
-  // 시작 포털 / 성
-  const end=PATH[PATH.length-1],st0=PATH[0];
-  ctx.save(); ctx.globalAlpha=.5+.3*Math.sin(now*4); ctx.fillStyle="#7a6bff"; ctx.beginPath();ctx.arc(st0.x+34,st0.y,20,0,7);ctx.fill(); ctx.restore();
-  ctx.font="34px serif"; ctx.fillText("🌀",st0.x+34,st0.y);
-  shadowEllipse(end.x-26,end.y+20,30,10); ctx.font="46px serif"; ctx.fillText("🏰",end.x-26,end.y-2);
+  LOWFX = state.monsters.length>16 || state.projectiles.length>44;
+  if(!BG)buildBG(); ctx.drawImage(BG,0,0);
+  ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineCap="round"; ctx.lineJoin="round";
 
   // 슬롯 & 타워
   for(const s of SLOTS){
@@ -1077,8 +1081,8 @@ function draw(){ ctx.setTransform(1,0,0,1,0,0);
   // 투사체 (트레일·발광)
   for(const pr of state.projectiles){ ctx.save();
     if(pr.proj==='bomb'){ shadowEllipse(pr.x,pr.y+6,5,2); ctx.fillStyle="#2a1c12"; ctx.beginPath();ctx.arc(pr.x,pr.y,5+pr.star*0.6,0,7);ctx.fill(); ctx.fillStyle="#ff9a3d"; ctx.beginPath();ctx.arc(pr.x-1,pr.y-1,2,0,7);ctx.fill(); }
-    else if(pr.proj==='arrow'){ const a=Math.atan2(pointAt(pr.tgt.d).y-pr.y,pointAt(pr.tgt.d).x-pr.x); ctx.translate(pr.x,pr.y);ctx.rotate(a); ctx.strokeStyle=pr.col;ctx.lineWidth=2.4;ctx.shadowColor=pr.col;ctx.shadowBlur=6; ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(7,0);ctx.stroke(); }
-    else { ctx.shadowColor=pr.col; ctx.shadowBlur=pr.star>=3?12:6; ctx.fillStyle=pr.col; ctx.beginPath();ctx.arc(pr.x,pr.y,3+pr.star*0.7,0,7);ctx.fill(); ctx.fillStyle="#fff";ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(pr.x,pr.y,1.4+pr.star*0.3,0,7);ctx.fill(); }
+    else if(pr.proj==='arrow'){ const ap=pr.tgt._px!=null?pr.tgt:pointAt(pr.tgt.d); const ax=pr.tgt._px!=null?pr.tgt._px:ap.x, ay=pr.tgt._py!=null?pr.tgt._py:ap.y; const a=Math.atan2(ay-pr.y,ax-pr.x); ctx.translate(pr.x,pr.y);ctx.rotate(a); ctx.strokeStyle=pr.col;ctx.lineWidth=2.4;if(!LOWFX){ctx.shadowColor=pr.col;ctx.shadowBlur=6;} ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(7,0);ctx.stroke(); }
+    else { if(!LOWFX){ctx.shadowColor=pr.col; ctx.shadowBlur=pr.star>=3?12:6;} ctx.fillStyle=pr.col; ctx.beginPath();ctx.arc(pr.x,pr.y,3+pr.star*0.7,0,7);ctx.fill(); ctx.fillStyle="#fff";ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(pr.x,pr.y,1.4+pr.star*0.3,0,7);ctx.fill(); }
     ctx.restore(); }
   // 파티클
   for(const p of state.particles){ const al=Math.max(0,p.life/p.max);
