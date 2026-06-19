@@ -216,9 +216,9 @@
           <button id="btn-gacha" class="btn btn-gold">🎁 타워 뽑기 <span class="small">(Q)</span><br><span class="small" id="lbl-gacha">-55 G</span></button>
           <button id="btn-syn" class="btn btn-blue" disabled>⚒️ 타워 합성<br><span class="small">같은 등급 2개</span></button>
         </div>
-        <button id="btn-gacha10" class="btn btn-gold" style="width:100%;background:linear-gradient(180deg,#ffd27a,#ff9d3d);box-shadow:0 5px 0 #c9701f;">🎁×10 한방 뽑기 <span class="small">(W)</span><br><span class="small" id="lbl-gacha10">고난도 문제 1개 → 정답 시 타워 10개 · -500 G</span></button>
+        <button id="btn-gacha10" class="btn btn-gold" style="width:100%;background:linear-gradient(180deg,#ffd27a,#ff9d3d);box-shadow:0 5px 0 #c9701f;">🎁×10 한방 뽑기 <span class="small">(W)</span><br><span class="small" id="lbl-gacha10">고난도 문제 1개 → 정답 시 타워 10개 · -650 G</span></button>
         <div class="inv-head"><h4>🏰 타워 대기실</h4></div>
-        <button id="btn-sellsel" class="btn btn-red" style="width:100%;margin:2px 0 4px;padding:9px;font-size:14px;">🗑️ 선택한 타워 일괄 판매</button>
+        <button id="btn-sellsel" class="btn btn-red" style="width:100%;margin:2px 0 4px;padding:9px;font-size:14px;">🗑️ 선택한 타워 일괄 판매 <span class="small">(가치의 30%만 환급)</span></button>
         <span class="tip" id="inv-tip" style="display:block;margin:-2px 0 4px;">1개 선택 → 빈자리 탭</span>
         <div class="inventory" id="inventory"></div>
         <div class="tower-info hidden" id="tower-info"></div>
@@ -275,6 +275,8 @@
    - 초반 완만 → 중반(=5웨이브~) 급가속. 적 HP/속도가 웨이브와 함께 상승.
    - 문제 난이도도 웨이브에 따라 상승 → 잘 맞히는 학생도 지루하지 않게.
    - 보상은 '중간'이 기본, 고등급은 극악 확률. 강한 타워는 합성으로만 도달.
+   - 경제 원칙(되팔이 차단): 판매 환급은 가치의 30%뿐 → '뽑기→바로 판매'의 기대 환급액 < 뽑기 비용.
+     강화·합성은 항상 골드 싱크(판매 차익보다 비용이 큼). 타워는 '되파는 것'이 아니라 '쓰는 것'.
    ============================================================ */
 
 /* ---------- Firebase (옵션, 비어있으면 로컬모드) ---------- */
@@ -288,8 +290,7 @@ async function initFirebase(){ try{ if(!firebaseConfig.databaseURL) return;
   FB={db,ref:D.ref,push:D.push,query:D.query,orderByChild:D.orderByChild,limitToLast:D.limitToLast,onValue:D.onValue};
 }catch(e){ FB=null; } }
 await initFirebase();
-const localScores={ normal:[{name:"30101 김함수",wave:13},{name:"30207 이정점",wave:10},{name:"30312 박포물",wave:8}],
-  hard:[{name:"30115 최표준",wave:7},{name:"30220 정평행",wave:5}] };
+const localScores={ normal:[], hard:[] }; // 데모 기록 없음 — 빈 명예의 전당으로 시작 (오프라인 모드는 이번 세션 점수만 누적)
 
 /* ---------- DOM ---------- */
 const $=id=>document.getElementById(id);
@@ -496,7 +497,8 @@ function effStats(type,star){ const T=TYPES[type]; const s={ ...T,
   if(T.kind==='roll'){ s.luckChance=star>=6?.85:star>=5?.7:Math.min(.55,.18+.06*star); s.luckAmt=star>=6?40:star>=5?25:4+3*star; }
   return s; }
 const VAL=[0,30,70,150,360,900,2200];
-function sellPrice(star){ return Math.floor(VAL[star]*0.4); }
+// 판매 환급률: 투자금의 30%만 돌려줌(=항상 손해). '뽑기→바로 판매'로 골드를 버는 되팔이 차단.
+function sellPrice(star){ return Math.floor(VAL[star]*0.3); }
 // 합성 비용(입력 등급별): 5★+5★→6★ 포함. 강화 비용: 4★→5★ 포함(5★→6★은 합성 전용)
 const SYN_COST=[0,30,80,200,500,1100];
 const UPG_COST=[0,50,130,320,700];
@@ -577,10 +579,10 @@ const BOSS_KEYS=['b_ogre','b_demon','b_reaper','b_dragon','b_phoenix','b_kraken'
    맵 / 상태
    ============================================================ */
 const DIFF={
-  normal:{label:'일반',lives:20,gold:160,hp:18,hpA:.18,hpB:.20,spd:1.12,spdA:.022,rwd:6,rwdA:.8},
+  normal:{label:'일반',lives:20,gold:150,hp:18,hpA:.18,hpB:.20,spd:1.12,spdA:.022,rwd:6,rwdA:.8},
   hard:{label:'하드코어',lives:12,gold:150,hp:40,hpA:.38,hpB:.26,spd:1.62,spdA:.034,rwd:10,rwdA:1.1},
 };
-const GACHA_COST=55, GACHA10_COST=500;
+const GACHA_COST=60, GACHA10_COST=650;
 function gcost(base){ return Math.round(base*(1+Math.max(0,(state.wave||1)-1)*0.04)); } // 웨이브↑ → 모든 소비 비용↑ (골드 싱크)
 const PATH=[{x:-40,y:90},{x:632,y:90},{x:632,y:220},{x:90,y:220},{x:90,y:350},{x:760,y:350}];
 const SEG=[]; let PATH_LEN=0;
